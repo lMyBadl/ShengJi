@@ -4,7 +4,7 @@ from player import Player
 
 text_size = 50
 
-d = Deck(False)
+d = Deck(False, 14, "hearts")
 p = Player()
 p2 = Player()
 p3 = Player()
