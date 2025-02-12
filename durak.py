@@ -1,4 +1,8 @@
-import card_logic
+from card_logic import Deck, Card
 
 class Durak:
-    pass
+    def __init__(self, trumpValue, trumpSuit):
+        self.trumpSuit = trumpSuit
+        self.trumpValue = trumpValue
+        self.deck = Deck(True, trumpValue, trumpSuit, 2)
+        self.deck.shuffle()
