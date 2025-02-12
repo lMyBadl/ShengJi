@@ -15,7 +15,7 @@ while len(p4.hand) <= 6:
     p3.drawCard(d)
     p4.drawCard(d)
 
-class Durak:
+class Client:
     # Initialize pygame
     pygame.init()
     deck = Deck(False)

@@ -69,6 +69,12 @@ class Card:
     def setPos(self, pos: tuple):
         self.pos = pos
 
+    def getSize(self):
+        return self.size
+
+    def isColliding(self, pos):
+        return self.pos[0] <= pos[0] <= self.pos[0] + self.getSize()[0] and self.pos[1] <= pos[1] <= self.pos[1] + self.getSize()[1]
+
     def __str__(self):
         return f"{self.value} of {self.suit}"
 
