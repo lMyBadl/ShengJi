@@ -70,6 +70,7 @@ class Client:
 
         handSize = p.__len__()
         cardShift = 30
+        """    We don't need to display all cards, only the ones that are in the hand and the played cards for now.    
         if handSize % 2 == 1:
             #startPos = (screen_width / 2 - int(handSize / 2) * cardShift - cardShift / 2, screen_height - p.getHand()[0].size[1])
 
@@ -91,7 +92,7 @@ class Client:
 
         for x in range(p3.__len__()):
             screen.blit(pygame.image.load("Cards Pack\\Large\\Back Blue 2 Horizontal.png"), (0, (screen_width - p.getHand()[0].size[0])/ 2 - int(handSize/2)*cardShift + x * cardShift))
-
+"""
 
 
         # Update the display

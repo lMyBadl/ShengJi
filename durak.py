@@ -5,4 +5,4 @@ class Durak:
         self.trumpSuit = trumpSuit
         self.trumpValue = trumpValue
         self.deck = Deck(True, trumpValue, trumpSuit, 2)
-        self.deck.shuffle()
+        self.deck.shuffleDeck()
