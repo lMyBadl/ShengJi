@@ -7,13 +7,14 @@ validValues = [14, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13] #in case we haven't c
 validSuits = {"hearts", "diamonds", "spades", "clubs"}
 
 
+
 class Card:
     def __init__(self, value, suit, trumpValue, trumpSuit, pos = (0, 0)):
         if self.isValid(value, suit):
             self.value = value
             self.suit = suit
-            self.trumpSuit = trumpSuit
             self.trumpValue = trumpValue
+            self.trumpSuit = trumpSuit
             self.pos = pos
             if suit == "clubs": s = "Clubs"
             elif suit == "spades": s = "Spades"
@@ -56,6 +57,9 @@ class Card:
     def __ne__ (self, other):
         return not self.__eq__(other)
 
+    def __str__(self):
+        return f"{self.value} of {self.suit}"
+
     @staticmethod
     def isValid(value, suit):
         global validValues, validSuits
@@ -75,30 +79,47 @@ class Card:
     def isColliding(self, pos):
         return self.pos[0] <= pos[0] <= self.pos[0] + self.getSize()[0] and self.pos[1] <= pos[1] <= self.pos[1] + self.getSize()[1]
 
-    def __str__(self):
-        return f"{self.value} of {self.suit}"
+    def setTrumpSuit(self, trumpSuit):
+        self.trumpSuit = trumpSuit
+
+    def setTrumpValue(self, trumpValue):
+        self.trumpValue = trumpValue
+
+    def setTrump(self, trumpSuit, trumpValue):
+        self.setTrumpSuit(trumpSuit)
+        self.setTrumpValue(trumpValue)
 
 
 class Deck:
-    def __init__(self, wantsJokers, trumpValue, trumpSuit, numDecks = 1):
-        global validSuits, validValues
+    def __init__(self, wantsJokers, numDecks = 1):
+
         self.wantsJokers = wantsJokers
         self.numDecks = numDecks
-        self.trumpSuit = trumpSuit
-        self.trumpValue = trumpValue
-        self.deck = [Card(value, suit, trumpValue, trumpSuit) for suit in validSuits for value in validValues]
-        if wantsJokers:
-            self.deck.append(Card("red", "joker", trumpSuit, trumpValue))
-            self.deck.append(Card("black", "joker", trumpSuit, trumpValue))
+        self.trumpSuit = None
+        self.trumpValue = None
+        self.deck = None
+
+    def __str__(self):
+        output = ""
+        for card in self.deck:
+            output += str(card) + " "
+        return output
+
+    def makeDeck(self):
+        global validSuits, validValues
+        self.deck = [Card(value, suit, self.trumpValue, self.trumpSuit) for suit in validSuits for value in validValues]
+        if self.wantsJokers:
+            self.deck.append(Card("red", "joker"))
+            self.deck.append(Card("black", "joker"))
         copy = self.deck.copy()
-        for i in range(numDecks - 1):
+        for i in range(self.numDecks - 1):
             self.deck.extend(copy)
 
     def getCard(self, index):
         return self.deck[index]
 
     def removeCard(self, value, suit):
-        card = Card(value, suit, self.trumpValue, self.trumpSuit)
+        card = Card(value, suit)
         if card not in self.deck:
             return False
         self.deck.remove(card)
@@ -110,8 +131,12 @@ class Deck:
     def shuffleDeck(self):
         random.shuffle(self.deck)
     
-    def __str__(self):
-        output = ""
-        for card in self.deck:
-            output += str(card) + " "
-        return output
+    def setTrumpSuit(self, trumpSuit):
+        self.trumpSuit = trumpSuit
+
+    def setTrumpValue(self, trumpValue):
+        self.trumpValue = trumpValue
+
+    def setTrump(self, trumpSuit, trumpValue):
+        self.setTrumpSuit(trumpSuit)
+        self.setTrumpValue(trumpValue)
