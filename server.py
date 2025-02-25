@@ -1,7 +1,7 @@
 import socket
 from _thread import *
 import pickle
-from durak import Durak
+from shengJi import ShengJi
 
 server = "10.161.62.66"
 port = 5555

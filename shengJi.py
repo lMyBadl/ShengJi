@@ -1,4 +1,4 @@
-class Durak:
+class ShengJi:
     def __init__(self, gameId, trumpSuit, level):
         self.trumpSuit = trumpSuit
 
