@@ -1,12 +1,12 @@
 class Durak:
-    def __init__(self, id, trumpSuit):
+    def __init__(self, gameId, trumpSuit, level):
         self.trumpSuit = trumpSuit
 
-        self.id = id
+        self.gameId = gameId
         self.ready = False
         self.playersWent = [False, False, False, False]
 
-        self.teamLevel = [2,2]
+        self.level = level
         self.moves = [[], [], [], []]
         self.trickStarter = 0
 
@@ -20,14 +20,31 @@ class Durak:
     def getTrickWinner(self):
         winner = self.trickStarter
         mainSuit = self.moves[winner][0].getSuit()
-        for i in range(3):
-            if self.moves[winner].__len__() == 2:
-                if self.moves[winner] < self.moves[self.getNextPlayer(winner)]:
-                    winner = self.getNextPlayer(winner)
+        nextPlayer = self.getNextPlayer(winner)
+        #setting main suit for the played cards
+        for playerMove in self.moves:
+            for card in playerMove:
+                card.setMainSuit(mainSuit)
 
-            if self.moves[self.trickStarter][0] == self.trumpSuit:
-
+        for _ in range(3):
+            if len(self.moves[winner]) == 1:
+                if self.moves[winner][0] < self.moves[nextPlayer][0]:
+                    winner = nextPlayer
+            elif len(self.moves[winner]) == 2:
+                if self.moves[self.getNextPlayer(winner)][0] == self.moves[nextPlayer][1] and self.moves[winner][0] < self.moves[nextPlayer][0]:
+                    winner = nextPlayer
+            nextPlayer = self.getNextPlayer(nextPlayer)
         return winner
+
+    def getPointsInTrick(self):
+        points = 0
+        for playerMove in self.moves:
+            for card in playerMove:
+                if card.getValue() == 13 or 10:
+                    points += 10
+                elif card.getValue() == 5:
+                    points += 5
+        return points
 
     @staticmethod
     def getNextPlayer(player):
@@ -42,36 +59,9 @@ class Durak:
         """
         return self.moves[player]
 
-class Game:
-    def __init__(self, id):
-        self.p1Went = False
-        self.p2Went = False
-        self.ready = False
-        self.id = id
-        self.moves = [None, None]
-        self.wins = [0,0]
-        self.ties = 0
-
-    def get_player_move(self, p):
-        """
-        :param p: [0,1]
-        :return: Move
-        """
-        return self.moves[p]
-
-    def play(self, player, move):
+    def playPlayerMove(self, player, move):
         self.moves[player] = move
-        if player == 0:
-            self.p1Went = True
-        else:
-            self.p2Went = True
+        self.playersWent[player] = True
 
-    def connected(self):
-        return self.ready
-
-    def bothWent(self):
-        return self.p1Went and self.p2Went
-
-    def resetWent(self):
-        self.p1Went = False
-        self.p2Went = False
+    def allReady(self):
+        return self.playersWent[0] and self.playersWent[1] and self.playersWent[2] and self.playersWent[3]

@@ -54,7 +54,7 @@ class Card:
         elif self.suit == self.trumpSuit:
             if other.suit == other.trumpSuit and other.value != other.trumpValue:
                 return self.value > other.value
-            #they don't have trump suit but could have joker or trump value
+            #they could have joker or trump value
             return other.value != other.trumpValue or other.suit != "joker"
 
         #Check Main Suit w/o trump value and trump suit
@@ -64,23 +64,13 @@ class Card:
             #they could have trump suit, trump value or joker
             return other.value != other.trumpValue or other.suit != other.trumpSuit or other.suit != "joker"
 
-
-
-        elif self.suit == self.trumpSuit:
-            if other.suit != other.trumpSuit:
-                return other.value != other.trumpValue or self.value == self.trumpValue
-            return self.value == self.trumpValue and other.value != other.trumpValue
-        elif self.suit == self.mainSuit:
-            if other.suit != other.mainSuit and other.value != other.trumpValue:
-                return True
-            elif other.suit == other.mainSuit:
-                return self.value > other.value
-            return
-            return self.value == self.trumpValue
-        return self.value > other.value
+        #if not main suit, trump suit, trump value, or joker then it will always be smallest
+        return False
 
     def __eq__ (self, other):
-        return self.value == other.value and self.suit == other.suit
+        if self.suit != self.mainSuit and self.suit != self.trumpSuit:
+            return other.suit != other.mainSuit and other.suit != other.trumpSuit
+        return self.value == other.value and self.suit == other.suit != self.mainSuit
 
     def __ne__ (self, other):
         return not self.__eq__(other)
@@ -132,9 +122,9 @@ class Deck:
             output += str(card) + " "
         return output
 
-    def makeDeck(self):
+    def makeDeck(self, trumpValue, trumpSuit):
         global validSuits, validValues
-        self.deck = [Card(value, suit, self.trumpValue, self.trumpSuit) for suit in validSuits for value in validValues]
+        self.deck = [Card(value, suit, trumpValue, trumpSuit) for suit in validSuits for value in validValues]
         if self.wantsJokers:
             self.deck.append(Card("red", "joker"))
             self.deck.append(Card("black", "joker"))
@@ -146,11 +136,8 @@ class Deck:
         return self.deck[index]
 
     def removeCard(self, value, suit):
-        card = Card(value, suit)
-        if card not in self.deck:
-            return False
+        card = Card(value, suit, self.trumpValue, self.trumpSuit)
         self.deck.remove(card)
-        return True
     
     def drawCard(self):
         return self.deck.pop()
