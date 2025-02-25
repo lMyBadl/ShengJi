@@ -1,24 +1,10 @@
 import pygame, sys
-from card_logic import Card, Deck
-from player import Player
 
 text_size = 50
-
-d = Deck(False, 14, "hearts")
-p = Player()
-p2 = Player()
-p3 = Player()
-p4 = Player()
-while len(p4.hand) <= 6:
-    p.drawCard(d)
-    p2.drawCard(d)
-    p3.drawCard(d)
-    p4.drawCard(d)
 
 class Client:
     # Initialize pygame
     pygame.init()
-    deck = Deck(False)
 
     # Screen dimensions
     screen_width = 500
@@ -26,7 +12,6 @@ class Client:
 
     # Create the screen
     screen = pygame.display.set_mode((screen_width, screen_height), pygame.RESIZABLE)
-
 
     # Set the title of the window
     pygame.display.set_caption("Dark Green Background")
@@ -68,7 +53,6 @@ class Client:
         # Blit (draw) the text onto the screen
         screen.blit(time_surface, (screen_width - text_size, text_size))
 
-        handSize = p.__len__()
         cardShift = 30
         """    We don't need to display all cards, only the ones that are in the hand and the played cards for now.    
         if handSize % 2 == 1:
@@ -93,8 +77,6 @@ class Client:
         for x in range(p3.__len__()):
             screen.blit(pygame.image.load("Cards Pack\\Large\\Back Blue 2 Horizontal.png"), (0, (screen_width - p.getHand()[0].size[0])/ 2 - int(handSize/2)*cardShift + x * cardShift))
 """
-
-
         # Update the display
         clock.tick(60)
         pygame.display.flip()

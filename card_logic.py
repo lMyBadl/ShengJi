@@ -1,11 +1,8 @@
 import random, pygame
-#default deck without jokers for checking
-validValues = [14, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13] #in case we haven't converted to ints yet
-#red = 1 and black = 2 because I don't want to bother adding another thing just for colors
 
-#five suits for us, hearts, diamonds, spades, clubs, and JOKERS
+
+validValues = [14, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
 validSuits = {"hearts", "diamonds", "spades", "clubs"}
-
 
 
 class Card:
@@ -27,9 +24,9 @@ class Card:
             if suit == "joker":
                 s = "Joker"
                 if value == "red": v = "Red"
-                elif value == "black": v = "Black"
+                else: v = "Black"
 
-            self.image = pygame.image.load(f"Cards Pack\\Large\\{s} {v}.png")
+            self.image = pygame.image.load(f"Cards Pack\\Medium\\{s} {v}.png")
             self.size = self.image.get_size()
         
         else:
@@ -76,18 +73,14 @@ class Card:
     def getSize(self):
         return self.size
 
+    def getSuit(self):
+        return self.suit
+
+    def getValue(self):
+        return self.value
+
     def isColliding(self, pos):
         return self.pos[0] <= pos[0] <= self.pos[0] + self.getSize()[0] and self.pos[1] <= pos[1] <= self.pos[1] + self.getSize()[1]
-
-    def setTrumpSuit(self, trumpSuit):
-        self.trumpSuit = trumpSuit
-
-    def setTrumpValue(self, trumpValue):
-        self.trumpValue = trumpValue
-
-    def setTrump(self, trumpSuit, trumpValue):
-        self.setTrumpSuit(trumpSuit)
-        self.setTrumpValue(trumpValue)
 
 
 class Deck:
