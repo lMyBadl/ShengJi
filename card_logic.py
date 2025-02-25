@@ -13,6 +13,7 @@ class Card:
             self.trumpValue = trumpValue
             self.trumpSuit = trumpSuit
             self.pos = pos
+            self.mainSuit = None
             if suit == "clubs": s = "Clubs"
             elif suit == "spades": s = "Spades"
             elif suit == "diamonds": s = "Diamonds"
@@ -36,15 +37,45 @@ class Card:
         return other.__gt__(self)
 
     def __gt__ (self, other):
+        #Check Jokers
         if self.suit == "joker":
             if other.suit != "joker":
                 return True
             return self.value == "red" and other.value == "black"
-        elif self.suit == self.trumpSuit and other.suit != other.trumpSuit:
+
+        #Check Trump Value
+        elif self.value == self.trumpValue:
+            if self.suit == self.trumpSuit:
+                return other.suit != "joker"
+            #dont have trump suit
+            return other.suit != other.trumpSuit or other.value != "joker"
+
+        #Check Trump Suit when not having trump value
+        elif self.suit == self.trumpSuit:
+            if other.suit == other.trumpSuit and other.value != other.trumpValue:
+                return self.value > other.value
+            #they don't have trump suit but could have joker or trump value
+            return other.value != other.trumpValue or other.suit != "joker"
+
+        #Check Main Suit w/o trump value and trump suit
+        elif self.suit == self.mainSuit:
+            if other.suit == other.mainSuit and other.value != other.trumpValue:
+                return self.value > other.value
+            #they could have trump suit, trump value or joker
+            return other.value != other.trumpValue or other.suit != other.trumpSuit or other.suit != "joker"
+
+
+
+        elif self.suit == self.trumpSuit:
             if other.suit != other.trumpSuit:
                 return other.value != other.trumpValue or self.value == self.trumpValue
             return self.value == self.trumpValue and other.value != other.trumpValue
-        elif self.suit != self.trumpSuit:
+        elif self.suit == self.mainSuit:
+            if other.suit != other.mainSuit and other.value != other.trumpValue:
+                return True
+            elif other.suit == other.mainSuit:
+                return self.value > other.value
+            return
             return self.value == self.trumpValue
         return self.value > other.value
 
@@ -78,6 +109,9 @@ class Card:
 
     def getValue(self):
         return self.value
+
+    def setMainSuit(self, suit):
+        self.mainSuit = suit
 
     def isColliding(self, pos):
         return self.pos[0] <= pos[0] <= self.pos[0] + self.getSize()[0] and self.pos[1] <= pos[1] <= self.pos[1] + self.getSize()[1]

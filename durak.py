@@ -22,11 +22,18 @@ class Durak:
         mainSuit = self.moves[winner][0].getSuit()
         for i in range(3):
             if self.moves[winner].__len__() == 2:
-                if self.moves[winner] <
+                if self.moves[winner] < self.moves[self.getNextPlayer(winner)]:
+                    winner = self.getNextPlayer(winner)
 
             if self.moves[self.trickStarter][0] == self.trumpSuit:
 
         return winner
+
+    @staticmethod
+    def getNextPlayer(player):
+        if player == 3:
+            return 0
+        return player + 1
 
     def getPlayerMove(self, player):
         """
