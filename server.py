@@ -25,7 +25,6 @@ def threaded_client(conn, p, gameId):
     global idCount
     conn.send(str.encode(str(p)))
 
-    reply = ""
     while True:
         try:
             data = conn.recv(4096).decode()
@@ -65,7 +64,7 @@ while True:
     p = 0
     gameId = (idCount - 1) // 2
     if idCount % 4 == 1:
-        games[gameId] = Durak(gameId)
+        games[gameId] = ShengJi(gameId)
         print("Creating a new game...")
     elif idCount % 4 == 0:
         games[gameId].ready = True
