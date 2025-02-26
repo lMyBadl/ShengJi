@@ -1,23 +1,27 @@
 class ShengJi:
-    def __init__(self, gameId, trumpSuit, level):
-        self.trumpSuit = trumpSuit
+    def __init__(self, gameId: int):
+        self.trumpSuit = None
 
         self.gameId = gameId
         self.ready = False
         self.playersWent = [False, False, False, False]
 
-        self.level = level
+        self.level = 2
         self.moves = [[], [], [], []]
         self.trickStarter = 0
 
-    def play(self, player, move):
+    def play(self, player: int, move: list):
+        """
+        :param player: [0, 1, 2, 3]
+        :param move: The Player's move from an array of Card objects
+        """
         self.moves[player] = move
         self.playersWent[player] = True
 
-    def setTrickStarter(self, player):
+    def setTrickStarter(self, player: int):
         self.trickStarter = player
 
-    def getTrickWinner(self):
+    def getTrickWinner(self) -> int:
         winner = self.trickStarter
         mainSuit = self.moves[winner][0].getSuit()
         nextPlayer = self.getNextPlayer(winner)
@@ -36,7 +40,7 @@ class ShengJi:
             nextPlayer = self.getNextPlayer(nextPlayer)
         return winner
 
-    def getPointsInTrick(self):
+    def getPointsInTrick(self) -> int:
         points = 0
         for playerMove in self.moves:
             for card in playerMove:
@@ -47,21 +51,30 @@ class ShengJi:
         return points
 
     @staticmethod
-    def getNextPlayer(player):
+    def getNextPlayer(player: int) -> int:
         if player == 3:
             return 0
         return player + 1
 
-    def getPlayerMove(self, player):
+    def getPlayerMove(self, player: int):
         """
         :param player: [0, 1, 2, 3]
         :return: The player's move
         """
         return self.moves[player]
 
-    def playPlayerMove(self, player, move):
+    def playPlayerMove(self, player: int, move: list):
         self.moves[player] = move
         self.playersWent[player] = True
 
-    def allReady(self):
+    def allReady(self) -> bool:
         return self.playersWent[0] and self.playersWent[1] and self.playersWent[2] and self.playersWent[3]
+
+    def setTrumpSuit(self, suit: str):
+        self.trumpSuit = suit
+
+    def getTrumpSuit(self) -> str:
+        return self.trumpSuit
+
+    def setLevel(self, level: int):
+        self.level = level

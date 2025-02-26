@@ -39,7 +39,7 @@ def threaded_client(conn, p, gameId):
                         game.resetWent()
                     elif data != "get":
                         game.play(p, data)
-
+                    #if the message is "get"
                     conn.sendall(pickle.dumps(game))
             else:
                 break
@@ -57,17 +57,21 @@ def threaded_client(conn, p, gameId):
 
 
 while True:
-    conn, addr = s.accept()
+    connection, addr = s.accept()
     print("Connected to:", addr)
 
     idCount += 1
-    p = 0
-    gameId = (idCount - 1) // 2
+    playerNum = 0
+    gameId = (idCount - 1) // 4
     if idCount % 4 == 1:
         games[gameId] = ShengJi(gameId)
         print("Creating a new game...")
-    elif idCount % 4 == 0:
+    elif idCount % 4 == 2:
+        playerNum = 1
+    elif idCount % 4 == 3:
+        playerNum = 2
+    else:
         games[gameId].ready = True
-        p = 1
+        playerNum = 3
 
-    start_new_thread(threaded_client, (conn, p, gameId))
+    start_new_thread(threaded_client, (connection, playerNum, gameId))
