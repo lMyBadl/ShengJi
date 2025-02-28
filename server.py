@@ -1,77 +1,107 @@
-import socket
-from _thread import *
-import pickle
-from shengJi import ShengJi
+# server.py
+import socket  # For network connections
+import threading  # To handle multiple clients concurrently
+import json  # For encoding/decoding messages in JSON
+import random  # To shuffle the deck
 
-server = "10.161.62.66"
-port = 5555
-
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-try:
-    s.bind((server, port))
-except socket.error as e:
-    str(e)
-
-s.listen()
-print("Waiting for a connection, Server Started")
-
-connected = set()
-games = {}
-idCount = 0
+# Global list to keep track of connected clients
+clients = []
 
 
-def threaded_client(conn, p, gameId):
-    global idCount
-    conn.send(str.encode(str(p)))
+def client_handler(conn, addr):
+    """
+    Handles communication with a connected client.
+    Each client runs in its own thread.
+    """
+    print(f"New connection from {addr}")
+    # Add the new client connection to the global list
+    clients.append(conn)
 
     while True:
         try:
-            data = conn.recv(4096).decode()
-
-            if gameId in games:
-                game = games[gameId]
-
-                if not data:
-                    break
-                else:
-                    if data == "reset":
-                        game.resetWent()
-                    elif data != "get":
-                        game.play(p, data)
-                    #if the message is "get"
-                    conn.sendall(pickle.dumps(game))
-            else:
+            # Receive data (up to 1024 bytes) from the client
+            data = conn.recv(1024)
+            if not data:
+                # No data indicates the client has disconnected
                 break
-        except:
+
+            # Decode the received bytes to a string and parse the JSON data
+            message = json.loads(data.decode())
+            print("Received message:", message)
+
+            # Check if the client is requesting to deal cards
+            if message.get("action") == "deal_request":
+                print("Deal request received; dealing cards...")
+                deal_cards(clients)
+
+            # Here you can process other game-related messages as needed.
+
+        except Exception as e:
+            print("Error:", e)
             break
 
-    print("Lost connection")
-    try:
-        del games[gameId]
-        print("Closing Game", gameId)
-    except:
-        pass
-    idCount -= 1
+    # Remove the client from the list and close the connection when done
+    print("Connection closed with", addr)
+    if conn in clients:
+        clients.remove(conn)
     conn.close()
 
 
-while True:
-    connection, addr = s.accept()
-    print("Connected to:", addr)
+def deal_cards(client_list):
+    """
+    Deals out all the cards in a standard deck (52 cards) evenly to all connected clients.
 
-    idCount += 1
-    playerNum = 0
-    gameId = (idCount - 1) // 4
-    if idCount % 4 == 1:
-        games[gameId] = ShengJi(gameId)
-        print("Creating a new game...")
-    elif idCount % 4 == 2:
-        playerNum = 1
-    elif idCount % 4 == 3:
-        playerNum = 2
-    else:
-        games[gameId].ready = True
-        playerNum = 3
+    The deck is represented as a list of strings (e.g., "Ace of Spades"). This function shuffles the deck,
+    calculates how many cards each player should receive (assuming an even distribution), and then sends a JSON
+    message to each client containing their hand.
+    """
+    # Define a standard deck of cards
+    suits = ['Hearts', 'Diamonds', 'Clubs', 'Spades']
+    ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'Jack', 'Queen', 'King', 'Ace']
+    deck = [f"{rank} of {suit}" for suit in suits for rank in ranks]
 
-    start_new_thread(threaded_client, (connection, playerNum, gameId))
+    # Shuffle the deck to randomize card order
+    random.shuffle(deck)
+
+    num_players = len(client_list)
+    if num_players == 0:
+        return
+
+    # Calculate the number of cards per player (for a 52-card deck)
+    cards_per_player = len(deck) // num_players
+    print(f"Dealing {cards_per_player} cards to each of {num_players} players.")
+
+    # Distribute the cards and send each player's hand
+    for i, client in enumerate(client_list):
+        # Slice out the hand for this player
+        player_cards = deck[i * cards_per_player:(i + 1) * cards_per_player]
+        # Build a JSON message that includes the dealt cards
+        message = {"action": "deal_cards", "cards": player_cards}
+        try:
+            client.sendall(json.dumps(message).encode())
+        except Exception as e:
+            print("Error sending cards to client:", e)
+
+
+def main():
+    # Set the host to listen on all network interfaces
+    host = 'localhost'
+    # Define the port (ensure this port is open on your AWS instance)
+    port = 12345
+
+    # Create a TCP/IP socket
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_socket.bind((host, port))
+    server_socket.listen()  # Start listening for incoming connections
+    print(f"Server listening on {host}:{port}")
+
+    while True:
+        # Accept a new client connection
+        conn, addr = server_socket.accept()
+        # Start a new thread to handle this client
+        thread = threading.Thread(target=client_handler, args=(conn, addr))
+        thread.start()
+
+
+if __name__ == '__main__':
+    main()

@@ -1,251 +1,113 @@
-import pygame, sys
+import pygame       # For the GUI
+import socket       # For network connections
+import json         # To encode/decode messages in JSON
+import threading    # To listen for messages concurrently
 
-text_size = 50
+# Set the IP address and port of your server (replace with your AWS server address)
+SERVER_IP = "localhost"
+SERVER_PORT = 12345
 
-class Client:
-    # Initialize pygame
-    pygame.init()
+# Initialize Pygame and set up the window
+pygame.init()
+screen_width, screen_height = 2000, 900
+screen = pygame.display.set_mode((screen_width, screen_height))
+pygame.display.set_caption("Card Game Client")
 
-    # Screen dimensions
-    screen_width = 500
-    screen_height = 500
+# Create a TCP/IP socket and connect to the server
+client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+client_socket.connect((SERVER_IP, SERVER_PORT))
 
-    # Create the screen
-    screen = pygame.display.set_mode((screen_width, screen_height), pygame.RESIZABLE)
+player_hand = []
 
-    # Set the title of the window
-    pygame.display.set_caption("Dark Green Background")
-    clock = pygame.time.Clock()
+font = pygame.font.SysFont("Arial", 16, bold= True)
 
-
-    # Define the dark green color (RGB)
-    dark_green = (0, 100, 0)
-
-    # Main loop
-    running = True
-    while running:
-                # get all events
-        ev = pygame.event.get()
-
-        # proceed events
-        for event in ev:
-
-            # handle MOUSEBUTTONUP
-            if event.type == pygame.MOUSEBUTTONUP:
-                pos = pygame.mouse.get_pos()
-
-            # get a list of all sprites that are under the mouse cursor
-                # clicked_sprites = [s for s in sprites if s.rect.collidepoint(pos)]
-            # do something with the clicked sprites...
-            elif event.type == pygame.QUIT:
-                running = False
-            elif event.type == pygame.VIDEORESIZE:
-                screen_width, screen_height = event.size
-                screen = pygame.display.set_mode((screen_width, screen_height), pygame.RESIZABLE)
-
-
-        # Fill the screen with the dark green color
-        screen.fill(dark_green)
-        time_surface = pygame.font.Font(None, text_size).render(str(int(clock.get_fps())), True, (255, 255, 255))
-        # Position the text in the center of the rectangle
-        # text_rect = time_surface.get_rect()
-
-        # Blit (draw) the text onto the screen
-        screen.blit(time_surface, (screen_width - text_size, text_size))
-
-        cardShift = 30
-        """    We don't need to display all cards, only the ones that are in the hand and the played cards for now.    
-        if handSize % 2 == 1:
-            #startPos = (screen_width / 2 - int(handSize / 2) * cardShift - cardShift / 2, screen_height - p.getHand()[0].size[1])
-
-            startPos = ((screen_width - p.getHand()[0].size[0])/ 2 - int(handSize/2)*cardShift, screen_height - p.getHand()[0].size[1])
-        else:
-            #startPos = ((screen_width - p.getHand()[0].size[0])/ 2 - int(handSize/2)*cardShift - cardShift / 2, screen_height - p.getHand()[0].size[1])
-
-            startPos = (screen_width / 2 - int(handSize / 2) * cardShift, screen_height - p.getHand()[0].size[1])
-
-        i=0
-        for card in p.getHand():
-            screen.blit(card.image, (startPos[0] + cardShift * i, startPos[1]))
-            i+=1
-
-
-        for x in range(p2.__len__()):
-            screen.blit(pygame.image.load("Cards Pack\\Large\\Back Blue 2.png"), (startPos[0] + cardShift * x, 0))
-            x += 1
-
-        for x in range(p3.__len__()):
-            screen.blit(pygame.image.load("Cards Pack\\Large\\Back Blue 2 Horizontal.png"), (0, (screen_width - p.getHand()[0].size[0])/ 2 - int(handSize/2)*cardShift + x * cardShift))
-"""
-        # Update the display
-        clock.tick(60)
-        pygame.display.flip()
-
-    # Quit pygame
-    pygame.quit()
-    sys.exit()
-
-import pygame
-from network import Network
-import pickle
-pygame.font.init()
-
-width = 700
-height = 700
-win = pygame.display.set_mode((width, height))
-pygame.display.set_caption("Client")
-
-
-class Button:
-    def __init__(self, text, x, y, color):
-        self.text = text
-        self.x = x
-        self.y = y
-        self.color = color
-        self.width = 150
-        self.height = 100
-
-    def draw(self, win):
-        pygame.draw.rect(win, self.color, (self.x, self.y, self.width, self.height))
-        font = pygame.font.SysFont("comicsans", 40)
-        text = font.render(self.text, 1, (255,255,255))
-        win.blit(text, (self.x + round(self.width/2) - round(text.get_width()/2), self.y + round(self.height/2) - round(text.get_height()/2)))
-
-    def click(self, pos):
-        x1 = pos[0]
-        y1 = pos[1]
-        if self.x <= x1 <= self.x + self.width and self.y <= y1 <= self.y + self.height:
-            return True
-        else:
-            return False
-
-
-def redrawWindow(win, game, p):
-    win.fill((128,128,128))
-
-    if not(game.connected()):
-        font = pygame.font.SysFont("comicsans", 80)
-        text = font.render("Waiting for Player...", 1, (255,0,0), True)
-        win.blit(text, (width/2 - text.get_width()/2, height/2 - text.get_height()/2))
-    else:
-        font = pygame.font.SysFont("comicsans", 60)
-        text = font.render("Your Move", 1, (0, 255,255))
-        win.blit(text, (80, 200))
-
-        text = font.render("Opponents", 1, (0, 255, 255))
-        win.blit(text, (380, 200))
-
-        move1 = game.get_player_move(0)
-        move2 = game.get_player_move(1)
-        if game.bothWent():
-            text1 = font.render(move1, 1, (0,0,0))
-            text2 = font.render(move2, 1, (0, 0, 0))
-        else:
-            if game.p1Went and p == 0:
-                text1 = font.render(move1, 1, (0,0,0))
-            elif game.p1Went:
-                text1 = font.render("Locked In", 1, (0, 0, 0))
-            else:
-                text1 = font.render("Waiting...", 1, (0, 0, 0))
-
-            if game.p2Went and p == 1:
-                text2 = font.render(move2, 1, (0,0,0))
-            elif game.p2Went:
-                text2 = font.render("Locked In", 1, (0, 0, 0))
-            else:
-                text2 = font.render("Waiting...", 1, (0, 0, 0))
-
-        if p == 1:
-            win.blit(text2, (100, 350))
-            win.blit(text1, (400, 350))
-        else:
-            win.blit(text1, (100, 350))
-            win.blit(text2, (400, 350))
-
-        for btn in btns:
-            btn.draw(win)
-
-    pygame.display.update()
-
-
-btns = [Button("Rock", 50, 500, (0,0,0)), Button("Scissors", 250, 500, (255,0,0)), Button("Paper", 450, 500, (0,255,0))]
-def main():
-    run = True
-    clock = pygame.time.Clock()
-    n = Network()
-    print(n.getP())
-    player = int(n.getP())
-    print("You are player", player)
-
-    while run:
-        clock.tick(60)
+def receive_messages():
+    """
+    Listens for incoming messages from the server in a separate thread.
+    """
+    global player_hand
+    while True:
         try:
-            game = n.send("get")
-        except:
-            run = False
-            print("Couldn't get game")
+            # Receive data from the server (up to 1024 bytes)
+            data = client_socket.recv(1024)
+            if data:
+                # Convert the JSON string to a Python dictionary
+                message = json.loads(data.decode())
+                print("Received from server:", message)
+            if message.get("action") == "deal_cards":
+                player_hand = message.get("cards", [])
+                print("Player hand updated:", player_hand)
+                # Update your game state here based on the received message.
+            else:
+                # If no data, the server might have closed the connection.
+                break
+        except Exception as e:
+            print("Error receiving data:", e)
             break
 
-        if game.bothWent():
-            redrawWindow(win, game, player)
-            pygame.time.delay(500)
-            try:
-                game = n.send("reset")
-            except:
-                run = False
-                print("Couldn't get game")
-                break
 
-            font = pygame.font.SysFont("comicsans", 90)
-            if (game.winner() == 1 and player == 1) or (game.winner() == 0 and player == 0):
-                text = font.render("You Won!", 1, (255,0,0))
-            elif game.winner() == -1:
-                text = font.render("Tie Game!", 1, (255,0,0))
-            else:
-                text = font.render("You Lost...", 1, (255, 0, 0))
+def draw_hand(surface, hand):
+    """
+    Draw the cards in the player's hand at the bottom of the screen.
+    Each card is drawn as a white rectangle with a black border and the card name rendered inside.
+    """
+    # Dimensions for each card representation
+    card_width = 100
+    card_height = 150
+    spacing = 20  # Space between each card
 
-            win.blit(text, (width/2 - text.get_width()/2, height/2 - text.get_height()/2))
-            pygame.display.update()
-            pygame.time.delay(2000)
+    # Calculate starting x so that cards are centered horizontally
+    total_width = len(hand) * card_width + (len(hand) - 1) * spacing
+    start_x = (screen_width - total_width) // 2
+    y_position = screen_height - card_height - 20  # Position near the bottom with a margin
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                run = False
-                pygame.quit()
+    # Loop through each card and render it on the screen
+    for i, card in enumerate(hand):
+        rect_x = start_x + i * (card_width + spacing)
+        card_rect = pygame.Rect(rect_x, y_position, card_width, card_height)
+        # Draw the card background (white) and border (black)
+        pygame.draw.rect(surface, (255, 255, 255), card_rect)
+        pygame.draw.rect(surface, (0, 0, 0), card_rect, 2)
+        # Render the card text and center it on the card
+        card_text = font.render(card, True, (0, 0, 0))
+        text_rect = card_text.get_rect(center=card_rect.center)
+        surface.blit(card_text, text_rect)
 
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                pos = pygame.mouse.get_pos()
-                for btn in btns:
-                    if btn.click(pos) and game.connected():
-                        if player == 0:
-                            if not game.p1Went:
-                                n.send(btn.text)
-                        else:
-                            if not game.p2Went:
-                                n.send(btn.text)
 
-        redrawWindow(win, game, player)
+# Start a separate daemon thread for listening to incoming server messages
+receive_thread = threading.Thread(target=receive_messages, daemon=True)
+receive_thread.start()
 
-def menu_screen():
-    run = True
-    clock = pygame.time.Clock()
+# Main game loop
+running = True
+while running:
+    has_deal = False
+    for event in pygame.event.get():
+        # Handle quitting the game
+        if event.type == pygame.QUIT:
+            running = False
+        # Handle keyboard input (for example, sending a message when space is pressed)
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                # When space is pressed, send a sample "play_card" action to the server
+                message = {"action": "play_card", "card": "Ace of Spades"}
+                client_socket.sendall(json.dumps(message).encode())
+                print("Sent message to server:", message)
+            if has_deal == False:
+                if event.key == pygame.K_w:
+                    message = {"action": "deal_request"}
+                    client_socket.sendall(json.dumps(message).encode())
+                    print("Sent message to server deal")
+                    has_deal = True
 
-    while run:
-        clock.tick(60)
-        win.fill((128, 128, 128))
-        font = pygame.font.SysFont("comicsans", 60)
-        text = font.render("Click to Play!", 1, (255,0,0))
-        win.blit(text, (100,200))
-        pygame.display.update()
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                run = False
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                run = False
 
-    main()
+    # Update the screen: fill with a green background (like a card table)
+    screen.fill((0, 128, 0))
+    # Here you would add drawing code for cards, teams, etc.
+    draw_hand(screen, player_hand)
+    pygame.display.flip()
 
-while True:
-    menu_screen()
+# Quit Pygame and close the socket when done
+pygame.quit()
+client_socket.close()
