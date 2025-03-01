@@ -10,7 +10,7 @@ SERVER_PORT = 12345
 # Initialize Pygame and set up the window
 pygame.init()
 screen_width, screen_height = 2000, 900
-screen = pygame.display.set_mode((screen_width, screen_height))
+screen = pygame.display.set_mode((screen_width, screen_height), pygame.RESIZABLE)
 pygame.display.set_caption("Card Game Client")
 
 # Create a TCP/IP socket and connect to the server
@@ -52,26 +52,27 @@ def draw_hand(surface, hand):
     Each card is drawn as a white rectangle with a black border and the card name rendered inside.
     """
     # Dimensions for each card representation
-    card_width = 100
-    card_height = 150
-    spacing = 20  # Space between each card
+    card_width = 50
+    card_height = 71
+    spacing = 2  # Space between each card
 
     # Calculate starting x so that cards are centered horizontally
     total_width = len(hand) * card_width + (len(hand) - 1) * spacing
     start_x = (screen_width - total_width) // 2
-    y_position = screen_height - card_height - 20  # Position near the bottom with a margin
+    y_position = screen.get_height() - card_height - 55  # Position near the bottom with a margin
+
+
 
     # Loop through each card and render it on the screen
     for i, card in enumerate(hand):
         rect_x = start_x + i * (card_width + spacing)
         card_rect = pygame.Rect(rect_x, y_position, card_width, card_height)
         # Draw the card background (white) and border (black)
-        pygame.draw.rect(surface, (255, 255, 255), card_rect)
-        pygame.draw.rect(surface, (0, 0, 0), card_rect, 2)
         # Render the card text and center it on the card
+
         card_text = font.render(card, True, (0, 0, 0))
         text_rect = card_text.get_rect(center=card_rect.center)
-        surface.blit(card_text, text_rect)
+        surface.blit(pygame.image.load(f"cards/{card}.png"), text_rect)
 
 
 # Start a separate daemon thread for listening to incoming server messages

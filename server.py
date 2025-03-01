@@ -56,9 +56,9 @@ def deal_cards(client_list):
     message to each client containing their hand.
     """
     # Define a standard deck of cards
-    suits = ['Hearts', 'Diamonds', 'Clubs', 'Spades']
-    ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'Jack', 'Queen', 'King', 'Ace']
-    deck = [f"{rank} of {suit}" for suit in suits for rank in ranks]
+    suits = ['Hearts', 'Diamond', 'Clubs', 'Spades']
+    ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '1']
+    deck = [f"{suit} {rank}" for suit in suits for rank in ranks]
 
     # Shuffle the deck to randomize card order
     random.shuffle(deck)
