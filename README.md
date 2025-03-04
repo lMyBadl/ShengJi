@@ -19,3 +19,4 @@ Version 1.02 - March 3, 2025
     -Add main game logic
     -Add rooms accessable with codes
     -Add start screen for player to name themselves
+	-Set up server 
