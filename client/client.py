@@ -48,7 +48,9 @@ def menuScreen():
         clock.tick(60)
         window.fill((128, 128, 128))
         menuFont = pygame.font.SysFont("Arial", 20)
-        joinRandomGameButton = Button()
+        joinRandomGameButton = Button("Join Random Game", menuFont, white, black, (200, 100), (window.get_width()//3 - 100, window.get_height()//4 - 50))
+        joinPrivateGameButton = Button("Join Private Game", menuFont, white, black, (200, 100), (2*window.get_width()//3 - 100, window.get_height()//4 - 50))
+        leaveAppButton = Button("Leave", menuFont, white, red, (200, 100), (window.get_width()//2 - 100, 3*window.get_height()//4 - 50))
         pygame.display.update()
 
         for event in pygame.event.get():
