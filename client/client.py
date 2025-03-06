@@ -1,8 +1,9 @@
 import pygame
 import socket
-import json
-import threading
+import pickle
+
 from player import Player
+from packet import Packet
 
 # Set up Pygame
 pygame.init()
@@ -26,20 +27,36 @@ animationProgress = 0  # Progress of animation (0 to 1)
 font = pygame.font.SysFont("Arial", 16, bold=True)
 opponentCardCounts = {}
 
+def sendMessage(connection, action: str, value: str):
+    """
+    :param connection: the connection object of the client
+    :param action: playCard,
+    :param value: value passed for the action taken
+    """
+    connection.sendall(pickle.dumps({action: value}))
+
+def receiveMessage(self) -> dict:
+    """
+    :return: A dictionary containing the action name as the key and the action as the value. If no message is received then returns {None:None}
+    """
+    data = self.connection.recv(1024 * dataMultiplier)
+    if not data:
+        return {None: None}
+    return pickle.loads(data)
+
 def receive_messages():
     global selectedCardIndex, opponentCardCounts, dataMultiplier
-    playerHand = player.getHand()
-    playerId = player.getId()
     while True:
         try:
-            data = clientSocket.recv(1024*dataMultiplier)
+            data = clientSocket.recv(1024 * dataMultiplier)
             if data:
-                message = json.loads(data.decode())
+                message = pickle.loads(data)
                 print("Received from server:", message)
 
                 if message.get("action") == "assign_id":
                     playerId = message["player_id"]
                     print(f"Assigned Player ID: {playerId}")
+                elif message[]
 
                 elif message.get("action") == "deal_cards":
                     playerHand = message["player_hand"]
@@ -214,7 +231,7 @@ while running:
 
             if not has_deal and event.key == pygame.K_w:
                 message = {"action": "deal_request"}
-                clientSocket.sendall(json.dumps(message).encode())
+                clientSocket.sendall(pickle.dumps(message).encode())
                 print("Sent message to server deal")
                 has_deal = True
 
@@ -224,7 +241,7 @@ while running:
         if animationProgress >= 1:
             # Remove card after animation finishes
             message = {"action": "play_card", "card": animatingCard}
-            clientSocket.sendall(json.dumps(message).encode())
+            clientSocket.sendall(pickle.dumps(message).encode())
             print("Sent message to server:", message)
             playerHand.remove(animatingCard)
             animatingCard = None  # Reset animation

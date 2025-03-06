@@ -1,14 +1,11 @@
-# server.py
-# For network connections
-# To handle multiple clients concurrently
 import json  # For encoding/decoding messages in JSON
-import random  # To shuffle the deck
 import socket
 from _thread import *
 import pickle
 
 from shengJi import ShengJi
 from player import Player
+from packet import Packet
 
 # Global list to keep track of connected clients
 clients = {}
@@ -16,21 +13,22 @@ gameId = 0
 idCount = 0
 games = {}
 
+dataMultiplier = 4
 
-def sendMessage(client: tuple, action: str, value: str):
+def sendMessage(connection, packet):
     """
-    :param client: tuple (connection, address)
-    :param action: sendCard, assignPlayerNum
-    :param value: value passed for the action taken
+    Available actions: sendCard, assignPlayerNum, setDataMultiplier
     """
-    message = {"action": "value"}
-    client[0].sendall(json.dumps(message).encode())
+    connection.sendall(pickle.dumps(packet))
 
-def receiveMessage(self) -> dict:
-    data = self.connection.recv(1024)
+def receiveMessage(self):
+    """
+    :return: A dictionary containing the action name as the key and the action as the value. If no message is received then returns {None:None}
+    """
+    data = self.connection.recv(1024 * dataMultiplier)
     if not data:
-        return {None: None}
-    return json.loads(data.decode())
+        return None
+    return pickle.loads(data)
 
 def clientHandler(client: tuple, playerNum, gameCode):
     """
@@ -48,8 +46,8 @@ def clientHandler(client: tuple, playerNum, gameCode):
 
     clients[playerId] = conn  # Store the player connection
 
-    welcome_message = {"action": "assign_id", "playerId": playerId}
-    conn.sendall(json.dumps(welcome_message).encode())
+    message = [Packet("assignId", playerId), Packet("setDataMultiplier", dataMultiplier)]
+    sendMessage(conn, message)
     print(f"New connection from {playerId} at {addr}")
 
     while run:
