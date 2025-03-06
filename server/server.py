@@ -1,4 +1,3 @@
-import json  # For encoding/decoding messages in JSON
 import socket
 from _thread import *
 import pickle
