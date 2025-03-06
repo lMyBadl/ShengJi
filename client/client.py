@@ -35,6 +35,22 @@ animationProgress = 0  # Progress of animation (0 to 1)
 font = pygame.font.SysFont("Arial", 16, bold=True)
 opponentCardCounts = {}
 
+def sendMessage(connection, packet):
+    """
+    :param connection: the connection object of the client
+    :param packet: A packet object to send
+    """
+    connection.sendall(pickle.dumps(packet))
+
+def receiveMessage(self):
+    """
+    :return: A packet object
+    """
+    data = self.connection.recv(dataSize)
+    if not data:
+        return None
+    return pickle.loads(data)
+
 def joinRandomGame():
     joinMessage = Packet("joinRandom", None)
     try:
@@ -49,6 +65,20 @@ def joinPrivateGame():
     try:
         clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         clientSocket.connect((serverIp, serverPort))
+
+        inputFont = pygame.font.Font(None, 30)
+        gameName = ""
+        run = True
+        while run:
+            for event in pygame.event.get():
+                if event.type is pygame.quit():
+                    pygame.quit()
+                elif event.type is pygame.KEYDOWN:
+                    if event.key is pygame.K_BACKSPACE:
+                        gameName = gameName[:-1]
+                    else:
+                        gameName += event.unicode
+
     except Exception as e:
         print(e)
 
@@ -58,7 +88,7 @@ def menuScreen():
 
     while run:
         clock.tick(60)
-        window.fill((128, 128, 128))
+        window.fill(black)
         menuFont = pygame.font.SysFont("Arial", 20)
         joinRandomGameButton = Button("Join Random Game", menuFont, white, black, (200, 100), (window.get_width()//3 - 100, window.get_height()//4 - 50))
         joinPrivateGameButton = Button("Join Private Game", menuFont, white, black, (200, 100), (2*window.get_width()//3 - 100, window.get_height()//4 - 50))
@@ -76,35 +106,19 @@ def menuScreen():
                     if button.isClicked(pos):
                         if button.getText() is "Leave":
                             pygame.quit()
-                            clientSocket.close()
+                            run = False
                         elif button.getText() is "Join Random Game":
                             joinRandomGame()
                         elif button.getText() is "Join Private Game":
                             joinPrivateGame()
 
 
-    main()
-
 # Quit Pygame and close the socket
 while True:
     menuScreen()
 
-def sendMessage(connection, packet):
-    """
-    :param connection: the connection object of the client
-    :param packet: A packet object to send
-    """
-    connection.sendall(pickle.dumps(packet))
 
-def receiveMessage(self) -> dict:
-    """
-    :return: A dictionary containing the action name as the key and the action as the value. If no message is received then returns {None:None}
-    """
-    data = self.connection.recv(dataSize)
-    if not data:
-        return {None: None}
-    return pickle.loads(data)
-
+"""
 def receiveMessages():
     global selectedCardIndex, opponentCardCounts, dataSize
     while True:
@@ -130,7 +144,7 @@ def receiveMessages():
             print("Error receiving data:", e)
             break
 
-
+"""
 def draw_opponent_cards(surface, opponent_counts):
     """
     Draws opponents' hands as face-down cards positioned around the window.
@@ -251,7 +265,7 @@ def animateCardPlay(card):
     global animatingCard, animationProgress
     animatingCard = card
     animationProgress = 0  # Reset progress
-
+"""
 # Main game loop
 running = True
 has_deal = False
@@ -309,3 +323,4 @@ while running:
     pygame.display.flip()
     clock.tick(60)  # Cap FPS to 60
 
+"""
