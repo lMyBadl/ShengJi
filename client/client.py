@@ -34,12 +34,12 @@ font = pygame.font.SysFont("Arial", 16, bold=True)
 opponentCardCounts = {}
 
 clock = pygame.time.Clock()
-def sendMessage(connection, packet):
+def sendMessage(s, packet):
     """
-    :param connection: the connection object of the client (not the address)
+    :param s: the socket object of the client
     :param packet: A packet object to send
     """
-    connection.sendall(pickle.dumps(packet))
+    s.sendall(pickle.dumps(packet))
 
 def receiveMessage(self):
     """
@@ -55,17 +55,18 @@ def joinRandomGame():
     try:
         clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         clientSocket.connect((serverIp, serverPort))
+        player.setConnection(clientSocket)
     except Exception as e:
         print(e)
 
 
 def joinPrivateGame():
     joinMessage = Packet("joinPrivate", None)
-    instructionText = "Type in the room name. Use the button or press enter to confirm the name."
+    instructionText = "Type in the room name. Use the button or select the text box and press enter to confirm the name."
     inputFont = pygame.font.SysFont("Arial", 20)
     privateUIFont = pygame.font.SysFont("Arial", 40, bold=True)
     gameName = ""
-    inputRectangle = pygame.Rect(window.get_width()//2 - 200, window.get_height()//2 - 15, 400, 30)
+    inputRectangle = pygame.Rect(window.get_width()//2 - 100, window.get_height()//2 - 15, 200, 30)
 
     activeColor = pygame.Color("lightskyblue3")
     passiveColor = pygame.Color("gray15")
@@ -74,9 +75,10 @@ def joinPrivateGame():
 
     run = True
     try:
-        """clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         clientSocket.connect((serverIp, serverPort))
-        player.setConnection(clientSocket)"""
+
+        player.setConnection(clientSocket)
 
 
         while run:
@@ -91,7 +93,7 @@ def joinPrivateGame():
             inputSurface = inputFont.render(gameName, True, white)
             pygame.draw.rect(window, color, inputRectangle, 4)
             window.blit(inputSurface, (inputRectangle.x + 5, inputRectangle.y + 5))
-            inputRectangle.w = max(400, inputSurface.get_width() + 10)
+            inputRectangle.w = max(200, inputSurface.get_width() + 10)
             inputRectangle.x = (window.get_width() - inputRectangle.w)//2
             confirmButton = Button("Confirm", privateUIFont, black, white, (200, 100), (window.get_width()//2 - 100, 3*window.get_height()//4 - 50))
             confirmButton.draw(window)
@@ -124,7 +126,7 @@ def joinPrivateGame():
                         message = Packet("setGameName", gameName)
                         run = False
                         packets = [joinMessage, message]
-                        sendMessage(player.getConnection()[0], packets)
+                        sendMessage(player.getConnection(), packets)
                         privateGameLobby()
                     if inputRectangle.collidepoint(pos):
                         active = True
@@ -138,6 +140,8 @@ def joinPrivateGame():
 
 def privateGameLobby():
     no = 0
+
+
 def menuScreen():
     run = True
     while run:
