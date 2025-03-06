@@ -51,6 +51,7 @@ def menuScreen():
         joinRandomGameButton = Button("Join Random Game", menuFont, white, black, (200, 100), (window.get_width()//3 - 100, window.get_height()//4 - 50))
         joinPrivateGameButton = Button("Join Private Game", menuFont, white, black, (200, 100), (2*window.get_width()//3 - 100, window.get_height()//4 - 50))
         leaveAppButton = Button("Leave", menuFont, white, red, (200, 100), (window.get_width()//2 - 100, 3*window.get_height()//4 - 50))
+        buttons = [joinRandomGameButton, joinPrivateGameButton, leaveAppButton]
         pygame.display.update()
 
         for event in pygame.event.get():
@@ -58,7 +59,10 @@ def menuScreen():
                 pygame.quit()
                 run = False
             if event.type == pygame.MOUSEBUTTONDOWN:
-                run = False
+                pos = pygame.mouse.get_pos()
+                for button in buttons:
+                    if button.isClicked(pos):
+
 
     main()
 
