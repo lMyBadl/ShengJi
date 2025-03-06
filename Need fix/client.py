@@ -50,7 +50,7 @@ def receive_messages():
 
 def draw_opponent_cards(surface, opponent_counts):
     """
-    Draws opponents' hands as face-down cards positioned around the screen.
+    Draws opponents' hands as face-down cards positioned around the window.
     """
     card_back_image = pygame.image.load("cards/Back Red 1.png").convert_alpha()  # Load a card back image
     card_width, card_height = 80, 120  # Card size
@@ -226,7 +226,7 @@ while running:
             animatingCard = None  # Reset animation
            # selected_card_index = max(0, selected_card_index - 1) if player_hand else None
 
-    # Draw updated screen
+    # Draw updated window
     draw_hand(screen, playerHand)
     draw_opponent_cards(screen, opponentCardCounts)
     pygame.display.flip()

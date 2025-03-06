@@ -48,7 +48,7 @@ def receive_messages():
 
 def draw_hand(surface, hand):
     """
-    Draw the cards in the player's hand at the bottom of the screen.
+    Draw the cards in the player's hand at the bottom of the window.
     Each card is drawn as a white rectangle with a black border and the card name rendered inside.
     """
     # Dimensions for each card representation
@@ -61,7 +61,7 @@ def draw_hand(surface, hand):
     start_x = (screen_width - total_width) // 2
     y_position = screen_height - card_height - 20  # Position near the bottom with a margin
 
-    # Loop through each card and render it on the screen
+    # Loop through each card and render it on the window
     for i, card in enumerate(hand):
         rect_x = start_x + i * (card_width + spacing)
         card_rect = pygame.Rect(rect_x, y_position, card_width, card_height)
@@ -102,7 +102,7 @@ while running:
 
 
 
-    # Update the screen: fill with a green background (like a card table)
+    # Update the window: fill with a green background (like a card table)
     screen.fill((0, 128, 0))
     # Here you would add drawing code for cards, teams, etc.
     draw_hand(screen, playerHand)

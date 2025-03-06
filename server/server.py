@@ -13,11 +13,11 @@ gameId = 0
 idCount = 0
 games = {}
 
-dataMultiplier = 4
+dataSize = 1024 * 4
 
 def sendMessage(connection, packet):
     """
-    Available actions: sendCard, assignPlayerNum, setDataMultiplier
+    Available actions: sendCard, assignPlayerNum, setDataSize
     """
     connection.sendall(pickle.dumps(packet))
 
@@ -25,7 +25,7 @@ def receiveMessage(self):
     """
     :return: A dictionary containing the action name as the key and the action as the value. If no message is received then returns {None:None}
     """
-    data = self.connection.recv(1024 * dataMultiplier)
+    data = self.connection.recv(dataSize)
     if not data:
         return None
     return pickle.loads(data)
@@ -46,19 +46,19 @@ def clientHandler(client: tuple, playerNum, gameCode):
 
     clients[playerId] = conn  # Store the player connection
 
-    message = [Packet("assignId", playerId), Packet("setDataMultiplier", dataMultiplier)]
+    message = [Packet("assignId", playerId), Packet("setDataSize", dataSize)]
     sendMessage(conn, message)
     print(f"New connection from {playerId} at {addr}")
 
     while run:
         try:
-            data = conn.recv(1024)
+            data = conn.recv(dataSize)
             if not data: break
 
-            message = json.loads(data.decode())
-            print(f"Received message from {playerId}: {message}")
+            message = pickle.loads(data)
+            print(f"Received message from {playerId}: {str(message)}")
 
-            if game.getReady:
+            if game.allReady():
                 print("Starting game")
             elif message.get("action") == "playCard":
                 print(f"Player {playerId} played ")

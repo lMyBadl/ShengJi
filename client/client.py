@@ -8,15 +8,17 @@ from packet import Packet
 # Set up Pygame
 pygame.init()
 screenWidth, screenHeight = 2000, 900
-screen = pygame.display.set_mode((screenWidth, screenHeight), pygame.RESIZABLE)
+window = pygame.display.set_mode((screenWidth, screenHeight), pygame.RESIZABLE)
 pygame.display.set_caption("Card Game Client")
+pygame.font.init()
+
 
 # Networking Setup
 serverIp = "localhost"
 serverPort = 12345
 clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 clientSocket.connect((serverIp, serverPort))
-dataMultiplier = 4
+dataSize = 1024
 
 player = Player()
 player.setConnection((serverIp, serverPort))
@@ -26,35 +28,63 @@ animatingCard = None  # Track which card is being animated
 animationProgress = 0  # Progress of animation (0 to 1)
 font = pygame.font.SysFont("Arial", 16, bold=True)
 opponentCardCounts = {}
+def main():
+    return None
 
-def sendMessage(connection, action: str, value: str):
+def menuScreen():
+    run = True
+    clock = pygame.time.Clock()
+
+    while run:
+        clock.tick(60)
+        window.fill((128, 128, 128))
+        menuFont = pygame.font.SysFont("Arial", 20)
+        text = menuFont.render("Click to Play!", 1, (255,0,0))
+        window.blit(text, (100,200))
+        pygame.display.update()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                run = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                run = False
+
+    main()
+
+# Quit Pygame and close the socket
+while True:
+    menuScreen()
+pygame.quit()
+clientSocket.close()
+
+def sendMessage(connection, packet):
     """
     :param connection: the connection object of the client
-    :param action: playCard,
-    :param value: value passed for the action taken
+    :param packet: A packet object to send
     """
-    connection.sendall(pickle.dumps({action: value}))
+    connection.sendall(pickle.dumps(packet))
 
 def receiveMessage(self) -> dict:
     """
     :return: A dictionary containing the action name as the key and the action as the value. If no message is received then returns {None:None}
     """
-    data = self.connection.recv(1024 * dataMultiplier)
+    data = self.connection.recv(dataSize)
     if not data:
         return {None: None}
     return pickle.loads(data)
 
-def receive_messages():
-    global selectedCardIndex, opponentCardCounts, dataMultiplier
+def receiveMessages():
+    global selectedCardIndex, opponentCardCounts, dataSize
     while True:
         try:
-            data = clientSocket.recv(1024 * dataMultiplier)
+            data = clientSocket.recv(dataSize)
             if data:
                 message = pickle.loads(data)
                 print("Received from server:", message)
-
-                if message.get("action") == "assign_id":
-                    playerId = message["player_id"]
+                for i in
+                if message.getAction() is "assignId":
+                    playerId = message.getValue()
                     print(f"Assigned Player ID: {playerId}")
                 elif message[]
 
@@ -72,14 +102,14 @@ def receive_messages():
 
 def draw_opponent_cards(surface, opponent_counts):
     """
-    Draws opponents' hands as face-down cards positioned around the screen.
+    Draws opponents' hands as face-down cards positioned around the window.
     """
     card_back_image = pygame.image.load("cards/Back Red 1.png").convert_alpha()  # Load a card back image
     card_width, card_height = 80, 120  # Card size
     card_spacing = 20  # Space between cards
 
-    screen_center_x = screen.get_width() // 2
-    screen_center_y = screen.get_height() // 2
+    screen_center_x = window.get_width() // 2
+    screen_center_y = window.get_height() // 2
 
     opponent_positions = list(opponent_counts.keys())  # Get opponent IDs
     num_opponents = len(opponent_positions)
@@ -88,7 +118,7 @@ def draw_opponent_cards(surface, opponent_counts):
     positions = {
         0: (50, screen_center_y - card_height // 2),  # Left side
         1: (screen_center_x - (num_opponents * (card_width + card_spacing)) // 2, 50),  # Top center
-        2: (screen.get_width() - 50 - card_width, screen_center_y - card_height // 2),  # Right side
+        2: (window.get_width() - 50 - card_width, screen_center_y - card_height // 2),  # Right side
     }
 
     for i, opponent_id in enumerate(opponent_positions):
@@ -133,7 +163,7 @@ def draw_hand(surface, hand):
 
     total_width = (len(hand) * card_width + (len(hand) - 1) * spacing)
     start_x = (screenWidth - total_width) // 2
-    y_position = screen.get_height() - card_height - 55
+    y_position = window.get_height() - card_height - 55
 
     for i, card in enumerate(hand):
         rect_x = start_x + i * (card_width + spacing)
@@ -171,10 +201,10 @@ def draw_hand(surface, hand):
 
 def getCardAtPos(pos, hand):
     """ Returns the index of the card clicked on, if any. """
-    start_x, card_width, card_height, spacing = draw_hand(screen, hand)
+    start_x, card_width, card_height, spacing = draw_hand(window, hand)
     x, y = pos
 
-    y_position = screen.get_height() - card_height - 55
+    y_position = window.get_height() - card_height - 55
 
     for i in range(len(hand)):
         rect_x = start_x + i * (card_width + spacing)
@@ -191,17 +221,12 @@ def animateCardPlay(card):
     animatingCard = card
     animationProgress = 0  # Reset progress
 
-
-
-
-
 # Main game loop
 running = True
 has_deal = False
-clock = pygame.time.Clock()
 
 while running:
-    screen.fill((0, 128, 0))  # Green background
+    window.fill((0, 128, 0))  # Green background
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -247,12 +272,9 @@ while running:
             animatingCard = None  # Reset animation
            # selected_card_index = max(0, selected_card_index - 1) if player_hand else None
 
-    # Draw updated screen
-    draw_hand(screen, playerHand)
-    draw_opponent_cards(screen, opponentCardCounts)
+    # Draw updated window
+    draw_hand(window, playerHand)
+    draw_opponent_cards(window, opponentCardCounts)
     pygame.display.flip()
     clock.tick(60)  # Cap FPS to 60
 
-# Quit Pygame and close the socket
-pygame.quit()
-clientSocket.close()

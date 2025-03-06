@@ -77,7 +77,7 @@ class ShengJi:
         self.moves[player] = move
         self.playersWent[player] = True
 
-    def allReady(self) -> bool:
+    def allPlayed(self) -> bool:
         return self.playersWent[0] and self.playersWent[1] and self.playersWent[2] and self.playersWent[3]
 
     def setTrumpSuit(self, suit: str):
@@ -92,7 +92,7 @@ class ShengJi:
     def setReady(self, ready: bool):
         self.ready = ready
 
-    def getReady(self) -> bool:
+    def allReady(self) -> bool:
         return self.ready
 
     def getPlayerFromId(self, playerId: int):
