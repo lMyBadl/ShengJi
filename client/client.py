@@ -40,8 +40,7 @@ def menuScreen():
         clock.tick(60)
         window.fill((128, 128, 128))
         menuFont = pygame.font.SysFont("Arial", 20)
-        text = menuFont.render("Click to Play!", 1, (255,0,0))
-        window.blit(text, (100,200))
+        joinRandomGameButton =
         pygame.display.update()
 
         for event in pygame.event.get():
