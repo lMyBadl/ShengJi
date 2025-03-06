@@ -29,7 +29,8 @@ animationProgress = 0  # Progress of animation (0 to 1)
 font = pygame.font.SysFont("Arial", 16, bold=True)
 opponentCardCounts = {}
 def main():
-    return None
+    run = True
+
 
 def menuScreen():
     run = True

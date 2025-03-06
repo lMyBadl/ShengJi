@@ -7,3 +7,8 @@ for num in dic:
         dic[num] = 3
 
 print(dic)
+
+x = (1, 2)
+y = (30, 40)
+
+print(x + y)
