@@ -24,3 +24,6 @@ class Button:
 
     def isClicked(self, pos: tuple) -> bool:
         return self.pos[0] <= pos[0] <= self.pos[0] + self.size[0] and self.pos[1] <= pos[1] <= self.pos[1] + self.size[1]
+
+    def getText(self) -> str:
+        return self.text
