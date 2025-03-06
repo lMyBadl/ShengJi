@@ -24,8 +24,6 @@ pygame.font.init()
 # Networking Setup
 serverIp = "localhost"
 serverPort = 12345
-clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-clientSocket.connect((serverIp, serverPort))
 dataSize = 1024
 
 player = Player()
@@ -36,9 +34,17 @@ animatingCard = None  # Track which card is being animated
 animationProgress = 0  # Progress of animation (0 to 1)
 font = pygame.font.SysFont("Arial", 16, bold=True)
 opponentCardCounts = {}
-def main():
-    run = True
 
+def joinRandomGame():
+    joinMessage = Packet("joinRandom", None)
+    try:
+        clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        clientSocket.connect((serverIp, serverPort))
+    except Exception as e:
+        print(e)
+
+
+def joinPrivateGame():
 
 def menuScreen():
     run = True
@@ -62,6 +68,13 @@ def menuScreen():
                 pos = pygame.mouse.get_pos()
                 for button in buttons:
                     if button.isClicked(pos):
+                        if button.getText() is "Leave":
+                            pygame.quit()
+                            clientSocket.close()
+                        elif button.getText() is "Join Random Game":
+                            joinRandomGame()
+                        elif button.getText() is "Join Private Game":
+                            joinPrivateGame()
 
 
     main()
@@ -69,8 +82,6 @@ def menuScreen():
 # Quit Pygame and close the socket
 while True:
     menuScreen()
-pygame.quit()
-clientSocket.close()
 
 def sendMessage(connection, packet):
     """
