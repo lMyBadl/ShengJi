@@ -18,7 +18,6 @@ pygame.init()
 screenWidth, screenHeight = 2000, 900
 window = pygame.display.set_mode((screenWidth, screenHeight), pygame.RESIZABLE)
 pygame.display.set_caption("Card Game Client")
-pygame.font.init()
 
 
 # Networking Setup
@@ -37,7 +36,7 @@ opponentCardCounts = {}
 
 def sendMessage(connection, packet):
     """
-    :param connection: the connection object of the client
+    :param connection: the connection object of the client (not the address)
     :param packet: A packet object to send
     """
     connection.sendall(pickle.dumps(packet))
@@ -61,27 +60,75 @@ def joinRandomGame():
 
 
 def joinPrivateGame():
+    pygame.font.init()
     joinMessage = Packet("joinPrivate", None)
-    try:
-        clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        clientSocket.connect((serverIp, serverPort))
+    clock = pygame.time.Clock()
+    instructionText = "Type in the room name. Use the button or press enter to confirm the name."
+    inputFont = pygame.font.SysFont("Arial", 20)
+    privateUIFont = pygame.font.SysFont("Arial", 40, bold=True)
+    gameName = ""
+    confirmButton = Button("Confirm", privateUIFont, black, white, (200, 100), (window.get_width()//2 - 100, window.get_height()//2 - 50))
+    inputRectangle = pygame.Rect(window.get_width(), window.get_height(), 400, 30)
 
-        inputFont = pygame.font.Font(None, 30)
-        gameName = ""
-        run = True
+    activeColor = pygame.Color("lightskyblue3")
+    passiveColor = pygame.Color("gray15")
+    color = passiveColor
+    active = False
+
+    run = True
+    try:
+        #clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        #clientSocket.connect((serverIp, serverPort))
+
+
         while run:
+            clock.tick(60)
+
+            #displaying
+            window.fill(black)
+
+            instructionSurface = privateUIFont.render(instructionText, True, white)
+            window.blit(instructionSurface, (window.get_width() // 2, window.get_height() // 3))
+
+            inputSurface = inputFont.render(gameName, True, white)
+            pygame.draw.rect(window, color, inputRectangle, 4)
+            window.blit(inputSurface, (inputRectangle.x + 5, inputRectangle.y + 5))
+            inputRectangle.w = max(150, inputSurface.get_width() + 10)
+            pygame.display.flip()
+            if active:
+                color = activeColor
+            else: color = passiveColor
+
             for event in pygame.event.get():
                 if event.type is pygame.quit():
                     pygame.quit()
-                elif event.type is pygame.KEYDOWN:
-                    if event.key is pygame.K_BACKSPACE:
-                        gameName = gameName[:-1]
+                    run = False
+                if event.type is pygame.KEYDOWN:
+                    if active:
+                        if event.key is pygame.K_BACKSPACE:
+                            gameName = gameName[:-1]
+                        else:
+                            gameName += event.unicode
+                if event.type is pygame.MOUSEBUTTONDOWN:
+                    pos = pygame.mouse.get_pos()
+                    if confirmButton.isClicked(pos):
+                        message = Packet("setGameName", gameName)
+                        run = False
+                        packets = [joinMessage, message]
+                        sendMessage(player.getConnection()[0], packets)
+                        privateGameLobby()
+                    if inputRectangle.collidepoint(pos):
+                        active = True
                     else:
-                        gameName += event.unicode
+                        active = False
+                #elif event.type is pygame.K_ENT
+
 
     except Exception as e:
         print(e)
 
+def privateGameLobby():
+    no = 0
 def menuScreen():
     run = True
     clock = pygame.time.Clock()
@@ -90,10 +137,12 @@ def menuScreen():
         clock.tick(60)
         window.fill(black)
         menuFont = pygame.font.SysFont("Arial", 20)
-        joinRandomGameButton = Button("Join Random Game", menuFont, white, black, (200, 100), (window.get_width()//3 - 100, window.get_height()//4 - 50))
-        joinPrivateGameButton = Button("Join Private Game", menuFont, white, black, (200, 100), (2*window.get_width()//3 - 100, window.get_height()//4 - 50))
+        joinRandomGameButton = Button("Join Random Game", menuFont, black, white, (200, 100), (window.get_width()//3 - 100, window.get_height()//4 - 50))
+        joinPrivateGameButton = Button("Join Private Game", menuFont, black, white, (200, 100), (2*window.get_width()//3 - 100, window.get_height()//4 - 50))
         leaveAppButton = Button("Leave", menuFont, white, red, (200, 100), (window.get_width()//2 - 100, 3*window.get_height()//4 - 50))
         buttons = [joinRandomGameButton, joinPrivateGameButton, leaveAppButton]
+        for button in buttons:
+            button.draw(window)
         pygame.display.update()
 
         for event in pygame.event.get():
@@ -104,18 +153,17 @@ def menuScreen():
                 pos = pygame.mouse.get_pos()
                 for button in buttons:
                     if button.isClicked(pos):
-                        if button.getText() is "Leave":
+                        if button.getText() == "Leave":
                             pygame.quit()
                             run = False
-                        elif button.getText() is "Join Random Game":
+                        elif button.getText() == "Join Random Game":
                             joinRandomGame()
-                        elif button.getText() is "Join Private Game":
+                        elif button.getText() == "Join Private Game":
                             joinPrivateGame()
 
 
-# Quit Pygame and close the socket
 while True:
-    menuScreen()
+    joinPrivateGame()
 
 
 """
