@@ -50,6 +50,8 @@ def deal_cards(client_list):
     suits = ['Hearts', 'Diamond', 'Clubs', 'Spades']
     ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '1']
     deck = [f"{suit} {rank}" for suit in suits for rank in ranks]
+    deckCopy = deck.copy()
+    deck.extend(deckCopy)
     random.shuffle(deck)
 
     num_players = len(client_list)
@@ -84,6 +86,8 @@ def main():
     host = 'localhost'
     # Define the port (ensure this port is open on your AWS instance)
     port = 12345
+    playerId = 0
+    gameId = 0
 
     # Create a TCP/IP socket
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -95,6 +99,8 @@ def main():
         # Accept a new client connection
         conn, addr = server_socket.accept()
         # Start a new thread to handle this client
+        if playerId % 4 == 1:
+            gameId += 1
         thread = threading.Thread(target=client_handler, args=(conn, addr))
         thread.start()
 

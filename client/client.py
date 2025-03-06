@@ -2,46 +2,51 @@ import pygame
 import socket
 import json
 import threading
+from player import Player
 
 # Set up Pygame
 pygame.init()
-screen_width, screen_height = 2000, 900
-screen = pygame.display.set_mode((screen_width, screen_height), pygame.RESIZABLE)
+screenWidth, screenHeight = 2000, 900
+screen = pygame.display.set_mode((screenWidth, screenHeight), pygame.RESIZABLE)
 pygame.display.set_caption("Card Game Client")
 
 # Networking Setup
-SERVER_IP = "localhost"
-SERVER_PORT = 12345
-client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client_socket.connect((SERVER_IP, SERVER_PORT))
+serverIp = "localhost"
+serverPort = 12345
+clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+clientSocket.connect((serverIp, serverPort))
+dataMultiplier = 4
 
-playerHand = []
+player = Player()
+player.setConnection((serverIp, serverPort))
+
 selectedCardIndex = None  # Index of the selected card
 animatingCard = None  # Track which card is being animated
 animationProgress = 0  # Progress of animation (0 to 1)
-playerId = None
 font = pygame.font.SysFont("Arial", 16, bold=True)
 opponentCardCounts = {}
 
 def receive_messages():
-    global playerHand, selectedCardIndex, playerId, opponentCardCounts
+    global selectedCardIndex, opponentCardCounts, dataMultiplier
+    playerHand = player.getHand()
+    playerId = player.getId()
     while True:
         try:
-            data = client_socket.recv(1024)
+            data = clientSocket.recv(1024*dataMultiplier)
             if data:
                 message = json.loads(data.decode())
                 print("Received from server:", message)
 
                 if message.get("action") == "assign_id":
-                    player_id = message["player_id"]
-                    print(f"Assigned Player ID: {player_id}")
+                    playerId = message["player_id"]
+                    print(f"Assigned Player ID: {playerId}")
 
                 elif message.get("action") == "deal_cards":
-                    player_hand = message["player_hand"]
-                    opponent_card_counts = message["opponent_counts"]  # ✅ Store opponent card counts
-                    selected_card_index = 0 if player_hand else None
-                    print(f"Player hand updated: {player_hand}")
-                    print(f"Opponent card counts: {opponent_card_counts}")
+                    playerHand = message["player_hand"]
+                    opponentCardCounts = message["opponent_counts"]  # ✅ Store opponent card counts
+                    selectedCardIndex = 0 if playerHand else None
+                    print(f"Player hand updated: {playerHand}")
+                    print(f"Opponent card counts: {opponentCardCounts}")
 
         except Exception as e:
             print("Error receiving data:", e)
@@ -110,7 +115,7 @@ def draw_hand(surface, hand):
     spacing = 5
 
     total_width = (len(hand) * card_width + (len(hand) - 1) * spacing)
-    start_x = (screen_width - total_width) // 2
+    start_x = (screenWidth - total_width) // 2
     y_position = screen.get_height() - card_height - 55
 
     for i, card in enumerate(hand):
@@ -127,19 +132,19 @@ def draw_hand(surface, hand):
             continue
 
         # Only move the animating card, leave others in place
-        if animating_card == card:
-            print(animating_card)
-            start_x_anim = start_x + selected_card_index * (card_width + spacing)  # Original position
-            target_x, target_y = ((screen_width - card_width )// 2, (screen_height - card_height) // 2)
+        if animatingCard == card:
+            print(animatingCard)
+            start_x_anim = start_x + selectedCardIndex * (card_width + spacing)  # Original position
+            target_x, target_y = ((screenWidth - card_width) // 2, (screenHeight - card_height) // 2)
 
-            rect_x_anim = int(start_x_anim + (target_x - start_x_anim) * animation_progress)
-            y_position_anim = int(y_position + (target_y - y_position) * animation_progress)
+            rect_x_anim = int(start_x_anim + (target_x - start_x_anim) * animationProgress)
+            y_position_anim = int(y_position + (target_y - y_position) * animationProgress)
         else:
             rect_x_anim=rect_x
             y_position_anim = y_position
 
         # Draw glow effect if the card is selected and not animating
-        if selected_card_index == i and animating_card is None:
+        if selectedCardIndex == i and animatingCard is None:
             draw_glow(surface, (rect_x, y_position), card_image)
 
         surface.blit(card_image, (rect_x_anim, y_position_anim))
@@ -147,7 +152,7 @@ def draw_hand(surface, hand):
     return start_x, card_width, card_height, spacing
 
 
-def get_card_at_pos(pos, hand):
+def getCardAtPos(pos, hand):
     """ Returns the index of the card clicked on, if any. """
     start_x, card_width, card_height, spacing = draw_hand(screen, hand)
     x, y = pos
@@ -163,16 +168,15 @@ def get_card_at_pos(pos, hand):
     return None
 
 
-def animate_card_play(card):
+def animateCardPlay(card):
     """ Starts the animation for a played card. """
     global animatingCard, animationProgress
-    animating_card = card
-    animation_progress = 0  # Reset progress
+    animatingCard = card
+    animationProgress = 0  # Reset progress
 
 
-# Start thread for receiving messages
-receive_thread = threading.Thread(target=receive_messages, daemon=True)
-receive_thread.start()
+
+
 
 # Main game loop
 running = True
@@ -187,9 +191,9 @@ while running:
             running = False
 
         if event.type == pygame.MOUSEBUTTONDOWN:
-            clicked_index = get_card_at_pos(event.pos, playerHand)
-            if clicked_index is not None and animatingCard is None:
-                selectedCardIndex = clicked_index
+            clickedIndex = getCardAtPos(event.pos, playerHand)
+            if clickedIndex is not None and animatingCard is None:
+                selectedCardIndex = clickedIndex
                 print(f"Selected Card: {playerHand[selectedCardIndex]}")
 
         if event.type == pygame.KEYDOWN and animatingCard is None:
@@ -199,18 +203,18 @@ while running:
 
             if event.key == pygame.K_RIGHT and selectedCardIndex is not None and selectedCardIndex < len(
                     playerHand) - 1:
-                if selectedCardIndex == None:
+                if not selectedCardIndex:
                     selectedCardIndex = len(playerHand) // 2
                 selectedCardIndex += 1
                 print(f"Selected Card: {playerHand[selectedCardIndex]}")
 
             if event.key == pygame.K_SPACE and selectedCardIndex is not None:
                 card_to_play = playerHand[selectedCardIndex]
-                animate_card_play(card_to_play)  # Start animation
+                animateCardPlay(card_to_play)  # Start animation
 
             if not has_deal and event.key == pygame.K_w:
                 message = {"action": "deal_request"}
-                client_socket.sendall(json.dumps(message).encode())
+                clientSocket.sendall(json.dumps(message).encode())
                 print("Sent message to server deal")
                 has_deal = True
 
@@ -220,7 +224,7 @@ while running:
         if animationProgress >= 1:
             # Remove card after animation finishes
             message = {"action": "play_card", "card": animatingCard}
-            client_socket.sendall(json.dumps(message).encode())
+            clientSocket.sendall(json.dumps(message).encode())
             print("Sent message to server:", message)
             playerHand.remove(animatingCard)
             animatingCard = None  # Reset animation
@@ -234,4 +238,4 @@ while running:
 
 # Quit Pygame and close the socket
 pygame.quit()
-client_socket.close()
+clientSocket.close()

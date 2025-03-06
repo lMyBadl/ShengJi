@@ -17,7 +17,7 @@ pygame.display.set_caption("Card Game Client")
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client_socket.connect((SERVER_IP, SERVER_PORT))
 
-player_hand = []
+playerHand = []
 
 font = pygame.font.SysFont("Arial", 16, bold= True)
 
@@ -25,7 +25,7 @@ def receive_messages():
     """
     Listens for incoming messages from the server in a separate thread.
     """
-    global player_hand
+    global playerHand
     while True:
         try:
             # Receive data from the server (up to 1024 bytes)
@@ -105,7 +105,7 @@ while running:
     # Update the screen: fill with a green background (like a card table)
     screen.fill((0, 128, 0))
     # Here you would add drawing code for cards, teams, etc.
-    draw_hand(screen, player_hand)
+    draw_hand(screen, playerHand)
     pygame.display.flip()
 
 # Quit Pygame and close the socket when done
