@@ -67,14 +67,18 @@ def joinRandomGame():
 
 def joinPrivateGame():
     global dataSize
-    joinMessage = Packet("joinPrivate", None)
-    instructionText1 = "Type in the room name. Use the button"
-    instructionText2 = "or select the text box and press enter to confirm the name."
     inputFont = pygame.font.SysFont("Arial", 20)
     privateUIFont = pygame.font.SysFont("Arial", 40, bold=True)
+    joinMessage = Packet("joinPrivate", None)
+
+    instructionText1 = "Type in the room name. Use the button"
+    instructionSurface1 = privateUIFont.render(instructionText1, True, white)
+    instructionText2 = "or select the text box and press enter to confirm the name."
+    instructionSurface2 = privateUIFont.render(instructionText2, True, white)
+
     gameName = ""
     inputRectangle = pygame.Rect(window.get_width()//2 - 100, window.get_height()//2 - 15, 200, 30)
-
+    confirmButton = Button("Confirm", privateUIFont, black, white, (200, 100), (window.get_width() // 2 - 100, 3 * window.get_height() // 4 - 50))
 
     activeColor = pygame.Color("lightskyblue3")
     passiveColor = pygame.Color("gray15")
@@ -103,10 +107,7 @@ def joinPrivateGame():
             #displaying
             window.fill(black)
 
-            instructionSurface1 = privateUIFont.render(instructionText1, True, white)
             window.blit(instructionSurface1, ((window.get_width() - instructionSurface1.get_width())// 2, (window.get_height() - instructionSurface1.get_height())// 3 - instructionSurface1.get_height()//2))
-
-            instructionSurface2 = privateUIFont.render(instructionText2, True, white)
             window.blit(instructionSurface2, ((window.get_width() - instructionSurface2.get_width()) // 2, (window.get_height() - instructionSurface2.get_height()) // 3 + instructionSurface2.get_height()//2))
 
             inputSurface = inputFont.render(gameName, True, white)
@@ -114,7 +115,6 @@ def joinPrivateGame():
             window.blit(inputSurface, (inputRectangle.x + 5, inputRectangle.y + 5))
             inputRectangle.w = max(200, inputSurface.get_width() + 10)
             inputRectangle.x = (window.get_width() - inputRectangle.w)//2
-            confirmButton = Button("Confirm", privateUIFont, black, white, (200, 100), (window.get_width()//2 - 100, 3*window.get_height()//4 - 50))
             confirmButton.draw(window)
             pygame.display.flip()
             if active:
@@ -158,21 +158,35 @@ def privateGameLobby():
     no = 0
 
 def enterNameScreen(screenAfter: str):
+    global dataSize
+    instructionText = "Enter name below:"
+    inputFont = pygame.font.SysFont("Arial", 20)
+    nameScreenFont = pygame.font.SysFont("Arial", 20)
+    confirmButton = Button("Confirm", nameScreenFont, black, white, (200, 100), (window.get_width() // 2 - 100, 3 * window.get_height() // 4 - 50))
+    inputText = ""
+    inputRectangle = pygame.Rect(window.get_width()//2 - 100, window.get_height()//2 - 15, 200, 30)
+
+    activeColor = pygame.Color("lightskyblue3")
+    passiveColor = pygame.Color("gray15")
+    color = passiveColor
+    active = False
     run = True
     while run:
         clock.tick(60)
         window.fill(black)
 
-        nameScreenFont = pygame.font.SysFont("Arial", 20)
-        instructionText = "Enter name below:"
-        confirmButton = Button("Confirm", nameScreenFont, black, white, (200, 100), (window.get_width() // 2 - 100, 3 * window.get_height() // 4 - 50))
-        inputText = ""
+
 
         instructionSurface = nameScreenFont.render(instructionText, True, white)
 
-
-
+        window.fill(black)
+        inputSurface = inputFont.render(inputText, True, white)
+        pygame.draw.rect(window, color, inputRectangle, 4)
+        window.blit(inputSurface, (inputRectangle.x + 5, inputRectangle.y + 5))
+        inputRectangle.w = max(200, inputSurface.get_width() + 10)
+        inputRectangle.x = (window.get_width() - inputRectangle.w) // 2
         confirmButton.draw(window)
+        pygame.display.flip()
 
 
 def menuScreen():
