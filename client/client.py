@@ -15,7 +15,7 @@ blue = (0, 0, 255)
 
 # Set up Pygame
 pygame.init()
-screenWidth, screenHeight = 2000, 900
+screenWidth, screenHeight = 1500, 900
 window = pygame.display.set_mode((screenWidth, screenHeight), pygame.RESIZABLE)
 pygame.display.set_caption("Card Game Client")
 
@@ -41,26 +41,32 @@ def sendMessage(s, packet):
     """
     s.sendall(pickle.dumps(packet))
 
-def receiveMessage(self):
+def receiveMessage(s):
     """
+    :param s: the socket object of the client
     :return: A packet object
     """
-    data = self.connection.recv(dataSize)
+    data = s.recv(dataSize)
     if not data:
         return None
     return pickle.loads(data)
 
+def serverClosed():
+    pygame.quit()
+
 def joinRandomGame():
+    global dataSize
     joinMessage = Packet("joinRandom", None)
     try:
         clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         clientSocket.connect((serverIp, serverPort))
-        player.setConnection(clientSocket)
+        player.setSocket(clientSocket)
     except Exception as e:
         print(e)
 
 
 def joinPrivateGame():
+    global dataSize
     joinMessage = Packet("joinPrivate", None)
     instructionText = "Type in the room name. Use the button or select the text box and press enter to confirm the name."
     inputFont = pygame.font.SysFont("Arial", 20)
@@ -78,7 +84,15 @@ def joinPrivateGame():
         clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         clientSocket.connect((serverIp, serverPort))
 
-        player.setConnection(clientSocket)
+        player.setSocket(clientSocket)
+        packets = receiveMessage(player.getSocket())
+        if not packets: serverClosed()
+        for packet in packets:
+            print(f"received from server packets: {str(packet)}")
+            if packet.getAction() == "assignId":
+                player.setId(packet.getValue())
+            elif packet.getAction() == "setDataSize":
+                dataSize = packet.getValue()
 
 
         while run:
@@ -111,12 +125,11 @@ def joinPrivateGame():
                         if event.key == pygame.K_BACKSPACE:
                             gameName = gameName[:-1]
                         elif event.key == pygame.K_RETURN:
-                            print("return")
                             if active:
                                 message = Packet("setGameName", gameName)
                                 run = False
                                 packets = [joinMessage, message]
-                                sendMessage(player.getConnection()[0], packets)
+                                sendMessage(player.getSocket(), packets)
                                 privateGameLobby()
                         else:
                             gameName += event.unicode
@@ -126,7 +139,7 @@ def joinPrivateGame():
                         message = Packet("setGameName", gameName)
                         run = False
                         packets = [joinMessage, message]
-                        sendMessage(player.getConnection(), packets)
+                        sendMessage(player.getSocket(), packets)
                         privateGameLobby()
                     if inputRectangle.collidepoint(pos):
                         active = True

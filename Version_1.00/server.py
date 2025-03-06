@@ -13,8 +13,8 @@ def client_handler(conn, addr):
     Handles communication with a connected client.
     Each client runs in its own thread.
     """
-    print(f"New connection from {addr}")
-    # Add the new client connection to the global list
+    print(f"New socket from {addr}")
+    # Add the new client socket to the global list
     clients.append(conn)
 
     while True:
@@ -40,7 +40,7 @@ def client_handler(conn, addr):
             print("Error:", e)
             break
 
-    # Remove the client from the list and close the connection when done
+    # Remove the client from the list and close the socket when done
     print("Connection closed with", addr)
     if conn in clients:
         clients.remove(conn)
@@ -96,7 +96,7 @@ def main():
     print(f"Server listening on {host}:{port}")
 
     while True:
-        # Accept a new client connection
+        # Accept a new client socket
         conn, addr = server_socket.accept()
         # Start a new thread to handle this client
         thread = threading.Thread(target=client_handler, args=(conn, addr))

@@ -2,7 +2,7 @@ class Player:
     def __init__(self):
         self.hand = []
         self.playerId = None
-        self.connection = None
+        self.socket = None
 
     def __len__(self):
         return self.hand.__len__()
@@ -28,17 +28,17 @@ class Player:
     def getId(self) -> int:
         return self.playerId
 
-    def setConnection(self, connection):
+    def setSocket(self, socket):
         """
-        :param connection: socket object
+        :param socket: socket object
         """
-        self.connection = connection
+        self.socket = socket
 
-    def getConnection(self):
+    def getSocket(self):
         """
         :return: socket object
         """
-        return self.connection
+        return self.socket
 
     def setId(self, playerId: int):
         self.playerId = playerId

@@ -13,7 +13,7 @@ def client_handler(conn, addr):
     Handles communication with a connected client.
     """
     player_id = str(uuid.uuid4())[:8]  # Generate a unique player ID
-    clients[player_id] = conn  # Store the player connection
+    clients[player_id] = conn  # Store the player socket
 
     welcome_message = {"action": "assign_id", "player_id": player_id}
     conn.sendall(json.dumps(welcome_message).encode())
@@ -92,7 +92,7 @@ def main():
     print(f"Server listening on {host}:{port}")
 
     while True:
-        # Accept a new client connection
+        # Accept a new client socket
         conn, addr = server_socket.accept()
         # Start a new thread to handle this client
         thread = threading.Thread(target=client_handler, args=(conn, addr))

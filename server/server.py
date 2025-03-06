@@ -24,7 +24,7 @@ def receiveMessage(self):
     """
     :return: A dictionary containing the action name as the key and the action as the value. If no message is received then returns {None:None}
     """
-    data = self.connection.recv(dataSize)
+    data = self.socket.recv(dataSize)
     if not data:
         return None
     return pickle.loads(data)
@@ -39,28 +39,28 @@ def clientHandler(client: tuple, playerNum, gameCode):
     # gets the pre-generated player id from the game
     game = games[gameCode]
     player = game.getPlayerFromIndex(playerNum)
-    player.setConnection(client)
+    player.setSocket(client)
     playerId = player.getId()
 
 
-    clients[playerId] = conn  # Store the player connection
+    clients[playerId] = conn  # Store the player socket
 
     message = [Packet("assignId", playerId), Packet("setDataSize", dataSize)]
     sendMessage(conn, message)
-    print(f"New connection from {playerId} at {addr}")
+    print(f"New socket from {playerId} at {addr}")
 
     while run:
         try:
             data = conn.recv(dataSize)
             if not data: break
 
-            message = pickle.loads(data)
-            print(f"Received message from {playerId}: {str(message)}")
-
-            if game.allReady():
-                print("Starting game")
-            elif message.get("action") == "playCard":
-                print(f"Player {playerId} played ")
+            packets = pickle.loads(data)
+            for packet in packets:
+                action = packet.getAction()
+                value = packet.getValue()
+                if action == "setGameName":
+                    game.setName(value)
+            print(f"Received message from {playerId}: {str(packets)}")
 
         except Exception as e:
             print(f"Error with player {playerId}: {e}")
@@ -98,7 +98,7 @@ def threaded_client(conn, p, gameCode):
         except:
             break
 
-    print("Lost connection")
+    print("Lost socket")
     try:
         del games[gameCode]
         print("Closing Game", gameCode)
@@ -159,16 +159,16 @@ def main():
         p = 0
         if idCount % 4 == 1:
             games[gameId] = ShengJi(gameId, Player(), Player(), Player(), Player())
-            games[gameId].getPlayer(0).setPlayerId(0)
+            games[gameId].getPlayerFromIndex(0).setId(0)
             print("Creating a new game...")
         elif idCount % 4 == 2:
-            games[gameId].getPlayer(1).setPlayerId(1)
+            games[gameId].getPlayerFromIndex(1).setId(1)
             p = 1
         elif idCount % 4 == 3:
-            games[gameId].getPlayer(2).setPlayerId(2)
+            games[gameId].getPlayerFromIndex(2).setId(2)
             p = 2
         elif idCount % 4 == 0:
-            games[gameId].getPlayer(3).setPlayerId(3)
+            games[gameId].getPlayerFromIndex(3).setId(3)
             p = 3
             games[gameId].setReady(True)  # Generate a unique player ID
 

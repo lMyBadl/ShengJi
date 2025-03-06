@@ -16,7 +16,7 @@ class Card:
             self.mainSuit = None
             if suit == "clubs": s = "Clubs"
             elif suit == "spades": s = "Spades"
-            elif suit == "diamonds": s = "Diamonds"
+            elif suit == "diamonds": s = "Diamond"
             elif suit == "hearts": s = "Hearts"
             else: s = suit
 
@@ -119,6 +119,7 @@ class Deck:
         self.trumpSuit = None
         self.trumpValue = None
         self.deck = None
+        self.makeDeck(0)
 
     def __str__(self):
         output = ""

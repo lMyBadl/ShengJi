@@ -39,7 +39,7 @@ def receive_messages():
                 print("Player hand updated:", player_hand)
                 # Update your game state here based on the received message.
             else:
-                # If no data, the server might have closed the connection.
+                # If no data, the server might have closed the socket.
                 break
         except Exception as e:
             print("Error receiving data:", e)
