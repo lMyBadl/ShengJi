@@ -28,10 +28,16 @@ class Player:
     def getId(self) -> int:
         return self.playerId
 
-    def setConnection(self, connection: tuple):
+    def setConnection(self, connection):
+        """
+        :param connection: socket object
+        """
         self.connection = connection
 
-    def getConnection(self) -> tuple:
+    def getConnection(self):
+        """
+        :return: socket object
+        """
         return self.connection
 
     def setId(self, playerId: int):

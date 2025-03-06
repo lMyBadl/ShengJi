@@ -26,7 +26,6 @@ serverPort = 12345
 dataSize = 1024
 
 player = Player()
-player.setConnection((serverIp, serverPort))
 
 selectedCardIndex = None  # Index of the selected card
 animatingCard = None  # Track which card is being animated
@@ -61,15 +60,12 @@ def joinRandomGame():
 
 
 def joinPrivateGame():
-    #I don't understand why I keep getting a "font not initialized" error when it's clearly initialized above.
     joinMessage = Packet("joinPrivate", None)
     instructionText = "Type in the room name. Use the button or press enter to confirm the name."
     inputFont = pygame.font.SysFont("Arial", 20)
     privateUIFont = pygame.font.SysFont("Arial", 40, bold=True)
     gameName = ""
-    confirmButton = Button("Confirm", privateUIFont, black, white, (200, 100), (window.get_width()//2 - 100, window.get_height()//2 - 50))
-    confirmButton.draw(window)
-    inputRectangle = pygame.Rect(window.get_width(), window.get_height(), 400, 30)
+    inputRectangle = pygame.Rect(window.get_width()//2 - 200, window.get_height()//2 - 15, 400, 30)
 
     activeColor = pygame.Color("lightskyblue3")
     passiveColor = pygame.Color("gray15")
@@ -78,8 +74,9 @@ def joinPrivateGame():
 
     run = True
     try:
-        #clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        #clientSocket.connect((serverIp, serverPort))
+        """clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        clientSocket.connect((serverIp, serverPort))
+        player.setConnection(clientSocket)"""
 
 
         while run:
@@ -94,23 +91,34 @@ def joinPrivateGame():
             inputSurface = inputFont.render(gameName, True, white)
             pygame.draw.rect(window, color, inputRectangle, 4)
             window.blit(inputSurface, (inputRectangle.x + 5, inputRectangle.y + 5))
-            inputRectangle.w = max(150, inputSurface.get_width() + 10)
+            inputRectangle.w = max(400, inputSurface.get_width() + 10)
+            inputRectangle.x = (window.get_width() - inputRectangle.w)//2
+            confirmButton = Button("Confirm", privateUIFont, black, white, (200, 100), (window.get_width()//2 - 100, 3*window.get_height()//4 - 50))
+            confirmButton.draw(window)
             pygame.display.flip()
             if active:
                 color = activeColor
             else: color = passiveColor
 
             for event in pygame.event.get():
-                if event.type is pygame.quit():
-                    #pygame.quit()
+                if event.type == pygame.QUIT:
+                    pygame.quit()
                     run = False
-                if event.type is pygame.KEYDOWN:
+                if event.type == pygame.KEYDOWN:
                     if active:
-                        if event.key is pygame.K_BACKSPACE:
+                        if event.key == pygame.K_BACKSPACE:
                             gameName = gameName[:-1]
+                        elif event.key == pygame.K_RETURN:
+                            print("return")
+                            if active:
+                                message = Packet("setGameName", gameName)
+                                run = False
+                                packets = [joinMessage, message]
+                                sendMessage(player.getConnection()[0], packets)
+                                privateGameLobby()
                         else:
                             gameName += event.unicode
-                if event.type is pygame.MOUSEBUTTONDOWN:
+                if event.type == pygame.MOUSEBUTTONDOWN:
                     pos = pygame.mouse.get_pos()
                     if confirmButton.isClicked(pos):
                         message = Packet("setGameName", gameName)
@@ -122,7 +130,7 @@ def joinPrivateGame():
                         active = True
                     else:
                         active = False
-                #elif event.type is pygame.K_ENT
+
 
 
     except Exception as e:
@@ -132,9 +140,8 @@ def privateGameLobby():
     no = 0
 def menuScreen():
     run = True
-
     while run:
-        print("start")
+        clock.tick(60)
         window.fill(black)
 
         menuFont = pygame.font.SysFont("Arial", 20)
@@ -162,13 +169,9 @@ def menuScreen():
                             joinRandomGame()
                         elif button.getText() == "Join Private Game":
                             joinPrivateGame()
-        print("end", run)
-        clock.tick(60)
 
 
-
-while True:
-    menuScreen()
+menuScreen()
 
 
 """

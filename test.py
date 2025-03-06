@@ -12,3 +12,12 @@ x = (1, 2)
 y = (30, 40)
 
 print(x + y)
+run = True
+x= 0
+while run:
+    msg = ""
+    print("cool", msg)
+    if x == 5:
+        msg = "hi"
+        run = False
+    x+=1
