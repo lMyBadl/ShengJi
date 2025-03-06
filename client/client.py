@@ -89,7 +89,7 @@ def joinPrivateGame():
             window.fill(black)
 
             instructionSurface = privateUIFont.render(instructionText, True, white)
-            window.blit(instructionSurface, (window.get_width() // 2, window.get_height() // 3))
+            window.blit(instructionSurface, ((window.get_width() - instructionSurface.get_width())// 2, (window.get_height() - instructionSurface.get_height())// 3))
 
             inputSurface = inputFont.render(gameName, True, white)
             pygame.draw.rect(window, color, inputRectangle, 4)
@@ -102,7 +102,7 @@ def joinPrivateGame():
 
             for event in pygame.event.get():
                 if event.type is pygame.quit():
-                    pygame.quit()
+                    #pygame.quit()
                     run = False
                 if event.type is pygame.KEYDOWN:
                     if active:
@@ -134,16 +134,18 @@ def menuScreen():
     run = True
 
     while run:
-        clock.tick(60)
+        print("start")
         window.fill(black)
+
         menuFont = pygame.font.SysFont("Arial", 20)
         joinRandomGameButton = Button("Join Random Game", menuFont, black, white, (200, 100), (window.get_width()//3 - 100, window.get_height()//4 - 50))
         joinPrivateGameButton = Button("Join Private Game", menuFont, black, white, (200, 100), (2*window.get_width()//3 - 100, window.get_height()//4 - 50))
         leaveAppButton = Button("Leave", menuFont, white, red, (200, 100), (window.get_width()//2 - 100, 3*window.get_height()//4 - 50))
         buttons = [joinRandomGameButton, joinPrivateGameButton, leaveAppButton]
+
         for button in buttons:
             button.draw(window)
-        pygame.display.update()
+        pygame.display.flip()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -153,17 +155,20 @@ def menuScreen():
                 pos = pygame.mouse.get_pos()
                 for button in buttons:
                     if button.isClicked(pos):
+                        run = False
                         if button.getText() == "Leave":
                             pygame.quit()
-                            run = False
                         elif button.getText() == "Join Random Game":
                             joinRandomGame()
                         elif button.getText() == "Join Private Game":
                             joinPrivateGame()
+        print("end", run)
+        clock.tick(60)
+
 
 
 while True:
-    joinPrivateGame()
+    menuScreen()
 
 
 """
