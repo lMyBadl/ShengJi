@@ -27,3 +27,15 @@ class Button:
 
     def getText(self) -> str:
         return self.text
+
+    def setPos(self, pos: tuple):
+        self.pos = pos
+
+    def getPos(self) -> tuple:
+        return self.pos
+
+    def setSize(self, size: tuple):
+        self.size = size
+
+    def getSize(self) -> tuple:
+        return self.size

@@ -54,19 +54,23 @@ def receiveMessage(s):
 def serverClosed():
     pygame.quit()
 
+def loadScreen(screenName: str):
+    if screenName == "Join Random Game":
+        joinRandomGame()
+    elif screenName == "Load Private Game Lobby":
+        loadPrivateGameLobby()
+    elif screenName == "Create Private Game":
+        createPrivateGame()
+
 def joinRandomGame():
-    global dataSize
     joinMessage = Packet("joinRandom", None)
     try:
-        clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        clientSocket.connect((serverIp, serverPort))
-        player.setSocket(clientSocket)
+        None
     except Exception as e:
         print(e)
 
 
-def joinPrivateGame():
-    global dataSize
+def createPrivateGame():
     inputFont = pygame.font.SysFont("Arial", 20)
     privateUIFont = pygame.font.SysFont("Arial", 40, bold=True)
     joinMessage = Packet("joinPrivate", None)
@@ -87,10 +91,6 @@ def joinPrivateGame():
 
     run = True
     try:
-        clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        clientSocket.connect((serverIp, serverPort))
-
-        player.setSocket(clientSocket)
         packets = receiveMessage(player.getSocket())
         if not packets: serverClosed()
         for packet in packets:
@@ -110,16 +110,19 @@ def joinPrivateGame():
             window.blit(instructionSurface1, ((window.get_width() - instructionSurface1.get_width())// 2, (window.get_height() - instructionSurface1.get_height())// 3 - instructionSurface1.get_height()//2))
             window.blit(instructionSurface2, ((window.get_width() - instructionSurface2.get_width()) // 2, (window.get_height() - instructionSurface2.get_height()) // 3 + instructionSurface2.get_height()//2))
 
+            #text box displaying
             inputSurface = inputFont.render(gameName, True, white)
             pygame.draw.rect(window, color, inputRectangle, 4)
             window.blit(inputSurface, (inputRectangle.x + 5, inputRectangle.y + 5))
             inputRectangle.w = max(200, inputSurface.get_width() + 10)
             inputRectangle.x = (window.get_width() - inputRectangle.w)//2
-            confirmButton.draw(window)
-            pygame.display.flip()
             if active:
                 color = activeColor
-            else: color = passiveColor
+            else:
+                color = passiveColor
+
+            confirmButton.draw(window)
+            pygame.display.flip()
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -135,7 +138,7 @@ def joinPrivateGame():
                                 run = False
                                 packets = [joinMessage, message]
                                 sendMessage(player.getSocket(), packets)
-                                privateGameLobby()
+                                loadPrivateGameLobby()
                         else:
                             gameName += event.unicode
                 if event.type == pygame.MOUSEBUTTONDOWN:
@@ -145,7 +148,7 @@ def joinPrivateGame():
                         run = False
                         packets = [joinMessage, message]
                         sendMessage(player.getSocket(), packets)
-                        privateGameLobby()
+                        loadPrivateGameLobby()
                     if inputRectangle.collidepoint(pos):
                         active = True
                     else:
@@ -154,40 +157,85 @@ def joinPrivateGame():
     except Exception as e:
         print(e)
 
-def privateGameLobby():
-    no = 0
+def loadPrivateGameLobby():
+    #reload button so that the server doesn't constantly send data
+    #layout:        Name                    Players     Join Button
+    #join button can change color/pop out if hovered over (check mouse pos every pygame.event, not just when clicked
+    rowHeight = 46
+    rowBorder = 2
+
+    titleText = "Private Game Lobbies"
+    titleFont = pygame.font.SysFont("Arial", 10, bold = True)
+    joinButton = Button("Join", titleFont, black, white, (100, rowHeight))
+
+
 
 def enterNameScreen(screenAfter: str):
-    global dataSize
     instructionText = "Enter name below:"
     inputFont = pygame.font.SysFont("Arial", 20)
     nameScreenFont = pygame.font.SysFont("Arial", 20)
     confirmButton = Button("Confirm", nameScreenFont, black, white, (200, 100), (window.get_width() // 2 - 100, 3 * window.get_height() // 4 - 50))
     inputText = ""
-    inputRectangle = pygame.Rect(window.get_width()//2 - 100, window.get_height()//2 - 15, 200, 30)
+    inputRectangle = pygame.Rect(window.get_width()//2 - 100, 2*window.get_height()//3 - 15, 200, 30)
 
+    instructionSurface = nameScreenFont.render(instructionText, True, white)
     activeColor = pygame.Color("lightskyblue3")
     passiveColor = pygame.Color("gray15")
     color = passiveColor
     active = False
     run = True
-    while run:
-        clock.tick(60)
-        window.fill(black)
+    try:
+        clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        clientSocket.connect((serverIp, serverPort))
+        player.setSocket(clientSocket)
+
+        while run:
+            clock.tick(60)
+            window.fill(black)
+
+            inputSurface = inputFont.render(inputText, True, white)
+            pygame.draw.rect(window, color, inputRectangle, 4)
+            window.blit(inputSurface, (inputRectangle.x + 5, inputRectangle.y + 5))
+            inputRectangle.w = max(200, inputSurface.get_width() + 10)
+            inputRectangle.x = (window.get_width() - inputRectangle.w) // 2
+            if active:
+                color = activeColor
+            else:
+                color = passiveColor
+            window.blit(instructionSurface, ((window.get_width() - instructionSurface.get_width())//2, (window.get_height() - instructionSurface.get_height())//2))
+            confirmButton.draw(window)
+            pygame.display.flip()
 
 
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    run = False
+                    pygame.quit()
 
-        instructionSurface = nameScreenFont.render(instructionText, True, white)
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    pos = pygame.mouse.get_pos()
+                    if confirmButton.isClicked(pos):
+                        run = False
+                        message = Packet("setPlayerName", inputText)
+                        sendMessage(player.getSocket(), message)
+                        loadScreen(screenAfter)
+                    if inputRectangle.collidepoint(pos):
+                        active = True
+                    else:
+                        active = False
 
-        window.fill(black)
-        inputSurface = inputFont.render(inputText, True, white)
-        pygame.draw.rect(window, color, inputRectangle, 4)
-        window.blit(inputSurface, (inputRectangle.x + 5, inputRectangle.y + 5))
-        inputRectangle.w = max(200, inputSurface.get_width() + 10)
-        inputRectangle.x = (window.get_width() - inputRectangle.w) // 2
-        confirmButton.draw(window)
-        pygame.display.flip()
-
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_RETURN:
+                        run = False
+                        message = Packet("setPlayerName", inputText)
+                        sendMessage(player.getSocket(), message)
+                        loadScreen(screenAfter)
+                    if event.key == pygame.K_BACKSPACE:
+                        inputText = inputText[:-1]
+                    else:
+                        inputText += event.unicode
+    except Exception as e:
+        print(e)
 
 def menuScreen():
     run = True
