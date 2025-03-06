@@ -45,6 +45,12 @@ def joinRandomGame():
 
 
 def joinPrivateGame():
+    joinMessage = Packet("joinPrivate", None)
+    try:
+        clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        clientSocket.connect((serverIp, serverPort))
+    except Exception as e:
+        print(e)
 
 def menuScreen():
     run = True

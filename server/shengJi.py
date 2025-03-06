@@ -1,6 +1,7 @@
 from card_logic import Deck
 class ShengJi:
     def __init__(self, gameId: int, player0, player1, player2, player3):
+        self.name = None
         self.trumpSuit = None
 
         self.gameId = gameId
@@ -103,3 +104,9 @@ class ShengJi:
 
     def getPlayerFromIndex(self, index: int):
         return self.players[index]
+
+    def setName(self, name: str):
+        self.name = name
+
+    def getName(self) -> str:
+        return self.name
