@@ -34,6 +34,7 @@ animationProgress = 0  # Progress of animation (0 to 1)
 font = pygame.font.SysFont("Arial", 16, bold=True)
 opponentCardCounts = {}
 
+clock = pygame.time.Clock()
 def sendMessage(connection, packet):
     """
     :param connection: the connection object of the client (not the address)
@@ -60,14 +61,14 @@ def joinRandomGame():
 
 
 def joinPrivateGame():
-    pygame.font.init()
+    #I don't understand why I keep getting a "font not initialized" error when it's clearly initialized above.
     joinMessage = Packet("joinPrivate", None)
-    clock = pygame.time.Clock()
     instructionText = "Type in the room name. Use the button or press enter to confirm the name."
     inputFont = pygame.font.SysFont("Arial", 20)
     privateUIFont = pygame.font.SysFont("Arial", 40, bold=True)
     gameName = ""
     confirmButton = Button("Confirm", privateUIFont, black, white, (200, 100), (window.get_width()//2 - 100, window.get_height()//2 - 50))
+    confirmButton.draw(window)
     inputRectangle = pygame.Rect(window.get_width(), window.get_height(), 400, 30)
 
     activeColor = pygame.Color("lightskyblue3")
@@ -131,7 +132,6 @@ def privateGameLobby():
     no = 0
 def menuScreen():
     run = True
-    clock = pygame.time.Clock()
 
     while run:
         clock.tick(60)
