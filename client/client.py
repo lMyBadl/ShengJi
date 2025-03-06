@@ -4,6 +4,14 @@ import pickle
 
 from player import Player
 from packet import Packet
+from button import Button
+
+#colors
+white = (255, 255, 255)
+black = (0, 0, 0)
+red = (255, 0, 0)
+green = (0, 255, 0)
+blue = (0, 0, 255)
 
 # Set up Pygame
 pygame.init()
@@ -40,7 +48,7 @@ def menuScreen():
         clock.tick(60)
         window.fill((128, 128, 128))
         menuFont = pygame.font.SysFont("Arial", 20)
-        joinRandomGameButton =
+        joinRandomGameButton = Button()
         pygame.display.update()
 
         for event in pygame.event.get():
