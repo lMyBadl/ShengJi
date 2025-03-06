@@ -90,74 +90,65 @@ def createPrivateGame():
     active = False
 
     run = True
-    try:
-        packets = receiveMessage(player.getSocket())
-        if not packets: serverClosed()
-        for packet in packets:
-            print(f"received from server packets: {str(packet)}")
-            if packet.getAction() == "assignId":
-                player.setId(packet.getValue())
-            elif packet.getAction() == "setDataSize":
-                dataSize = packet.getValue()
 
 
-        while run:
-            clock.tick(60)
+    while run:
+        clock.tick(60)
 
-            #displaying
-            window.fill(black)
+        #displaying
+        window.fill(black)
 
-            window.blit(instructionSurface1, ((window.get_width() - instructionSurface1.get_width())// 2, (window.get_height() - instructionSurface1.get_height())// 3 - instructionSurface1.get_height()//2))
-            window.blit(instructionSurface2, ((window.get_width() - instructionSurface2.get_width()) // 2, (window.get_height() - instructionSurface2.get_height()) // 3 + instructionSurface2.get_height()//2))
+        window.blit(instructionSurface1, ((window.get_width() - instructionSurface1.get_width())// 2, (window.get_height() - instructionSurface1.get_height())// 3 - instructionSurface1.get_height()//2))
+        window.blit(instructionSurface2, ((window.get_width() - instructionSurface2.get_width()) // 2, (window.get_height() - instructionSurface2.get_height()) // 3 + instructionSurface2.get_height()//2))
 
-            #text box displaying
-            inputSurface = inputFont.render(gameName, True, white)
-            pygame.draw.rect(window, color, inputRectangle, 4)
-            window.blit(inputSurface, (inputRectangle.x + 5, inputRectangle.y + 5))
-            inputRectangle.w = max(200, inputSurface.get_width() + 10)
-            inputRectangle.x = (window.get_width() - inputRectangle.w)//2
-            if active:
-                color = activeColor
-            else:
-                color = passiveColor
+        #text box displaying
+        inputSurface = inputFont.render(gameName, True, white)
+        pygame.draw.rect(window, color, inputRectangle, 4)
+        window.blit(inputSurface, (inputRectangle.x + 5, inputRectangle.y + 5))
+        inputRectangle.w = max(200, inputSurface.get_width() + 10)
+        inputRectangle.x = (window.get_width() - inputRectangle.w)//2
+        if active:
+            color = activeColor
+        else:
+            color = passiveColor
 
-            confirmButton.draw(window)
-            pygame.display.flip()
+        confirmButton.draw(window)
+        pygame.display.flip()
 
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    run = False
-                if event.type == pygame.KEYDOWN:
-                    if active:
-                        if event.key == pygame.K_BACKSPACE:
-                            gameName = gameName[:-1]
-                        elif event.key == pygame.K_RETURN:
-                            if active:
-                                message = Packet("setGameName", gameName)
-                                run = False
-                                packets = [joinMessage, message]
-                                sendMessage(player.getSocket(), packets)
-                                loadPrivateGameLobby()
-                        else:
-                            gameName += event.unicode
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    pos = pygame.mouse.get_pos()
-                    if confirmButton.isClicked(pos):
-                        message = Packet("setGameName", gameName)
-                        run = False
-                        packets = [joinMessage, message]
-                        sendMessage(player.getSocket(), packets)
-                        loadPrivateGameLobby()
-                    if inputRectangle.collidepoint(pos):
-                        active = True
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                run = False
+            if event.type == pygame.KEYDOWN:
+                if active:
+                    if event.key == pygame.K_BACKSPACE:
+                        gameName = gameName[:-1]
+                    elif event.key == pygame.K_RETURN:
+                        if active:
+                            message = Packet("setGameName", gameName)
+                            run = False
+                            packets = [joinMessage, message]
+                            sendMessage(player.getSocket(), packets)
+                            loadPrivateGameLobby()
                     else:
-                        active = False
-
-    except Exception as e:
-        print(e)
+                        gameName += event.unicode
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                pos = pygame.mouse.get_pos()
+                if confirmButton.isClicked(pos):
+                    message = Packet("setGameName", gameName)
+                    run = False
+                    packets = [joinMessage, message]
+                    sendMessage(player.getSocket(), packets)
+                    loadPrivateGameLobby()
+                if inputRectangle.collidepoint(pos):
+                    active = True
+                else:
+                    active = False
 
 def loadPrivateGameLobby():
+    """
+    displays the UI for the list of private games available
+    """
     #reload button so that the server doesn't constantly send data
     #layout:        Name                    Players     Join Button
     #join button can change color/pop out if hovered over (check mouse pos every pygame.event, not just when clicked
@@ -166,17 +157,23 @@ def loadPrivateGameLobby():
 
     titleText = "Private Game Lobbies"
     titleFont = pygame.font.SysFont("Arial", 10, bold = True)
-    joinButton = Button("Join", titleFont, black, white, (100, rowHeight))
+    joinButton = Button("Join", titleFont, black, white, (100, rowHeight), )
 
 
 
-def enterNameScreen(screenAfter: str):
+def inputNameScreen(screenAfter: str):
+    """
+    displays a screen for the user to input their name
+    :param screenAfter: the screen that the user selected before entering this UI
+    :return:
+    """
+    global dataSize
     instructionText = "Enter name below:"
     inputFont = pygame.font.SysFont("Arial", 20)
     nameScreenFont = pygame.font.SysFont("Arial", 20)
     confirmButton = Button("Confirm", nameScreenFont, black, white, (200, 100), (window.get_width() // 2 - 100, 3 * window.get_height() // 4 - 50))
     inputText = ""
-    inputRectangle = pygame.Rect(window.get_width()//2 - 100, 2*window.get_height()//3 - 15, 200, 30)
+    inputRectangle = pygame.Rect(window.get_width()//2 - 100, 1*window.get_height()//2 - 15, 200, 30)
 
     instructionSurface = nameScreenFont.render(instructionText, True, white)
     activeColor = pygame.Color("lightskyblue3")
@@ -188,6 +185,13 @@ def enterNameScreen(screenAfter: str):
         clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         clientSocket.connect((serverIp, serverPort))
         player.setSocket(clientSocket)
+
+        packets = receiveMessage(player.getSocket())
+        if not packets: serverClosed()
+        for packet in packets:
+            print(f"received from server packets: {str(packet)}")
+            if packet.getAction() == "setDataSize":
+                dataSize = packet.getValue()
 
         while run:
             clock.tick(60)
@@ -202,7 +206,7 @@ def enterNameScreen(screenAfter: str):
                 color = activeColor
             else:
                 color = passiveColor
-            window.blit(instructionSurface, ((window.get_width() - instructionSurface.get_width())//2, (window.get_height() - instructionSurface.get_height())//2))
+            window.blit(instructionSurface, ((window.get_width() - instructionSurface.get_width())//2, (window.get_height() - instructionSurface.get_height())//3))
             confirmButton.draw(window)
             pygame.display.flip()
 
@@ -266,14 +270,13 @@ def menuScreen():
                         if buttonText == "Leave":
                             pygame.quit()
                         else:
-                            enterNameScreen(button.getText())
+                            inputNameScreen(button.getText())
                         """
                         elif buttonText == "Join Random Game":
                             enterNameScreen()
                         elif buttonText == "Join Private Game":
                             joinPrivateGame()"""
                             #Yuan is dumb;
-
 
 menuScreen()
 

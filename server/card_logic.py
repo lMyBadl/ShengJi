@@ -14,6 +14,7 @@ class Card:
             self.trumpSuit = trumpSuit
             self.pos = pos
             self.mainSuit = None
+            """
             if suit == "clubs": s = "Clubs"
             elif suit == "spades": s = "Spades"
             elif suit == "diamonds": s = "Diamond"
@@ -26,9 +27,9 @@ class Card:
                 s = "Joker"
                 if value == "red": v = "Red"
                 else: v = "Black"
-
-            self.image = pygame.image.load(f"Cards Pack\\Medium\\{s} {v}.png")
-            self.size = self.image.get_size()
+"""
+            #self.image = pygame.image.load(f"Cards Pack\\Medium\\{s} {v}.png")
+            #self.size = self.image.get_size()
         
         else:
             raise Exception("Invalid value or suit")

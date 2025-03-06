@@ -3,7 +3,7 @@ class Packet:
         """
         sends an action-value pair encased as an object
         Client send options: playCard, getCardNumbers, setGameName, setReady, setPlayerName
-        Server send options: assignId, setDataSize,
+        Server send options: assignId, setDataSize
         """
         self.action = action
         self.value = value
