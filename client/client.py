@@ -9,9 +9,9 @@ import platform
 
 systemName = platform.system()
 if systemName == "linux":
-    typeOfSlash = "/"
+    fileSlash = "/"
 else:
-    typeOfSLash = "\\"
+    fileSlash = "\\"
 
 #colors
 white = (255, 255, 255)
