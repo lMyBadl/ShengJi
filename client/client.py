@@ -68,11 +68,13 @@ def joinRandomGame():
 def joinPrivateGame():
     global dataSize
     joinMessage = Packet("joinPrivate", None)
-    instructionText = "Type in the room name. Use the button or select the text box and press enter to confirm the name."
+    instructionText1 = "Type in the room name. Use the button"
+    instructionText2 = "or select the text box and press enter to confirm the name."
     inputFont = pygame.font.SysFont("Arial", 20)
     privateUIFont = pygame.font.SysFont("Arial", 40, bold=True)
     gameName = ""
     inputRectangle = pygame.Rect(window.get_width()//2 - 100, window.get_height()//2 - 15, 200, 30)
+
 
     activeColor = pygame.Color("lightskyblue3")
     passiveColor = pygame.Color("gray15")
@@ -101,8 +103,11 @@ def joinPrivateGame():
             #displaying
             window.fill(black)
 
-            instructionSurface = privateUIFont.render(instructionText, True, white)
-            window.blit(instructionSurface, ((window.get_width() - instructionSurface.get_width())// 2, (window.get_height() - instructionSurface.get_height())// 3))
+            instructionSurface1 = privateUIFont.render(instructionText1, True, white)
+            window.blit(instructionSurface1, ((window.get_width() - instructionSurface1.get_width())// 2, (window.get_height() - instructionSurface1.get_height())// 3 - instructionSurface1.get_height()//2))
+
+            instructionSurface2 = privateUIFont.render(instructionText2, True, white)
+            window.blit(instructionSurface2, ((window.get_width() - instructionSurface2.get_width()) // 2, (window.get_height() - instructionSurface2.get_height()) // 3 + instructionSurface2.get_height()//2))
 
             inputSurface = inputFont.render(gameName, True, white)
             pygame.draw.rect(window, color, inputRectangle, 4)
@@ -146,13 +151,28 @@ def joinPrivateGame():
                     else:
                         active = False
 
-
-
     except Exception as e:
         print(e)
 
 def privateGameLobby():
     no = 0
+
+def enterNameScreen(screenAfter: str):
+    run = True
+    while run:
+        clock.tick(60)
+        window.fill(black)
+
+        nameScreenFont = pygame.font.SysFont("Arial", 20)
+        instructionText = "Enter name below:"
+        confirmButton = Button("Confirm", nameScreenFont, black, white, (200, 100), (window.get_width() // 2 - 100, 3 * window.get_height() // 4 - 50))
+        inputText = ""
+
+        instructionSurface = nameScreenFont.render(instructionText, True, white)
+
+
+
+        confirmButton.draw(window)
 
 
 def menuScreen():
@@ -180,12 +200,17 @@ def menuScreen():
                 for button in buttons:
                     if button.isClicked(pos):
                         run = False
-                        if button.getText() == "Leave":
+                        buttonText = button.getText()
+                        if buttonText == "Leave":
                             pygame.quit()
-                        elif button.getText() == "Join Random Game":
-                            joinRandomGame()
-                        elif button.getText() == "Join Private Game":
-                            joinPrivateGame()
+                        else:
+                            enterNameScreen(button.getText())
+                        """
+                        elif buttonText == "Join Random Game":
+                            enterNameScreen()
+                        elif buttonText == "Join Private Game":
+                            joinPrivateGame()"""
+                            #Yuan is dumb;
 
 
 menuScreen()
