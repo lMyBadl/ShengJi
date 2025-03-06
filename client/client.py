@@ -5,6 +5,13 @@ import pickle
 from player import Player
 from packet import Packet
 from button import Button
+import platform
+
+systemName = platform.system()
+if systemName == "linux":
+    typeOfSlash = "/"
+else:
+    typeOfSLash = "\\"
 
 #colors
 white = (255, 255, 255)
@@ -280,39 +287,11 @@ def menuScreen():
 
 menuScreen()
 
-
-"""
-def receiveMessages():
-    global selectedCardIndex, opponentCardCounts, dataSize
-    while True:
-        try:
-            data = clientSocket.recv(dataSize)
-            if data:
-                message = pickle.loads(data)
-                print("Received from server:", message)
-                for i in
-                if message.getAction() is "assignId":
-                    playerId = message.getValue()
-                    print(f"Assigned Player ID: {playerId}")
-                elif message[]
-
-                elif message.get("action") == "deal_cards":
-                    playerHand = message["player_hand"]
-                    opponentCardCounts = message["opponent_counts"]  # ✅ Store opponent card counts
-                    selectedCardIndex = 0 if playerHand else None
-                    print(f"Player hand updated: {playerHand}")
-                    print(f"Opponent card counts: {opponentCardCounts}")
-
-        except Exception as e:
-            print("Error receiving data:", e)
-            break
-
-"""
 def draw_opponent_cards(surface, opponent_counts):
     """
     Draws opponents' hands as face-down cards positioned around the window.
     """
-    card_back_image = pygame.image.load("cards/Back Red 1.png").convert_alpha()  # Load a card back image
+    card_back_image = pygame.image.load(f"cards{typeOfSlash}Back Red 1.png").convert_alpha()  # Load a card back image
     card_width, card_height = 80, 120  # Card size
     card_spacing = 20  # Space between cards
 
@@ -380,7 +359,7 @@ def draw_hand(surface, hand):
 
         # Load card image
         try:
-            card_image = pygame.image.load(f"cards/{card}.png").convert_alpha()
+            card_image = pygame.image.load(f"cards{typeOfSlash}{card}.png").convert_alpha()
             card_image = pygame.transform.scale(card_image, (card_width, card_height))
         except:
             print(f"Error loading image for {card}")
@@ -428,62 +407,3 @@ def animateCardPlay(card):
     global animatingCard, animationProgress
     animatingCard = card
     animationProgress = 0  # Reset progress
-"""
-# Main game loop
-running = True
-has_deal = False
-
-while running:
-    window.fill((0, 128, 0))  # Green background
-
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            clickedIndex = getCardAtPos(event.pos, playerHand)
-            if clickedIndex is not None and animatingCard is None:
-                selectedCardIndex = clickedIndex
-                print(f"Selected Card: {playerHand[selectedCardIndex]}")
-
-        if event.type == pygame.KEYDOWN and animatingCard is None:
-            if event.key == pygame.K_LEFT and selectedCardIndex is not None and selectedCardIndex > 0:
-                selectedCardIndex -= 1
-                print(f"Selected Card: {playerHand[selectedCardIndex]}")
-
-            if event.key == pygame.K_RIGHT and selectedCardIndex is not None and selectedCardIndex < len(
-                    playerHand) - 1:
-                if not selectedCardIndex:
-                    selectedCardIndex = len(playerHand) // 2
-                selectedCardIndex += 1
-                print(f"Selected Card: {playerHand[selectedCardIndex]}")
-
-            if event.key == pygame.K_SPACE and selectedCardIndex is not None:
-                card_to_play = playerHand[selectedCardIndex]
-                animateCardPlay(card_to_play)  # Start animation
-
-            if not has_deal and event.key == pygame.K_w:
-                message = {"action": "deal_request"}
-                clientSocket.sendall(pickle.dumps(message).encode())
-                print("Sent message to server deal")
-                has_deal = True
-
-    # Handle animation
-    if animatingCard:
-        animationProgress += 0.05  # Adjust speed (higher = faster)
-        if animationProgress >= 1:
-            # Remove card after animation finishes
-            message = {"action": "play_card", "card": animatingCard}
-            clientSocket.sendall(pickle.dumps(message).encode())
-            print("Sent message to server:", message)
-            playerHand.remove(animatingCard)
-            animatingCard = None  # Reset animation
-           # selected_card_index = max(0, selected_card_index - 1) if player_hand else None
-
-    # Draw updated window
-    draw_hand(window, playerHand)
-    draw_opponent_cards(window, opponentCardCounts)
-    pygame.display.flip()
-    clock.tick(60)  # Cap FPS to 60
-
-"""
