@@ -41,19 +41,17 @@ font = pygame.font.SysFont("Arial", 16, bold=True)
 opponentCardCounts = {}
 
 clock = pygame.time.Clock()
-def sendMessage(s, packet):
+def sendMessage(packet):
     """
-    :param s: the socket object of the client
     :param packet: A packet object to send
     """
-    s.sendall(pickle.dumps(packet))
+    player.getSocket().sendall(pickle.dumps(packet))
 
-def receiveMessage(s):
+def receiveMessage():
     """
-    :param s: the socket object of the client
     :return: A packet object
     """
-    data = s.recv(dataSize)
+    data = player.getSocket().recv(dataSize)
     if not data:
         return None
     return pickle.loads(data)
@@ -65,7 +63,7 @@ def loadScreen(screenName: str):
     if screenName == "Join Random Game":
         joinRandomGame()
     elif screenName == "Load Private Game Lobby":
-        loadPrivateGameLobby()
+        privateGameLobby()
     elif screenName == "Create Private Game":
         createPrivateGame()
 
@@ -135,8 +133,7 @@ def createPrivateGame():
                             message = Packet("setGameName", gameName)
                             run = False
                             packets = [joinMessage, message]
-                            sendMessage(player.getSocket(), packets)
-                            loadPrivateGameLobby()
+                            sendMessage(packets)
                     else:
                         gameName += event.unicode
             if event.type == pygame.MOUSEBUTTONDOWN:
@@ -145,32 +142,85 @@ def createPrivateGame():
                     message = Packet("setGameName", gameName)
                     run = False
                     packets = [joinMessage, message]
-                    sendMessage(player.getSocket(), packets)
-                    loadPrivateGameLobby()
+                    sendMessage(packets)
                 if inputRectangle.collidepoint(pos):
                     active = True
                 else:
                     active = False
 
-def loadPrivateGameLobby():
+def privateGameLobby():
     """
     displays the UI for the list of private games available
     """
     #reload button so that the server doesn't constantly send data
-    #layout:        Name                    Players     Join Button
+    #layout:
+    # 10 px
+    # 30 px             title
+    # 10 px
+    # 2 px              border
+    # 16 px (5%) Name(60%)                   Players(20%)     Join Button(10%) (5%)
+    # 2 px              border
+    # rest of grid
     #join button can change color/pop out if hovered over (check mouse pos every pygame.event, not just when clicked
-    rowHeight = 46
+    rowHeight = 16
     rowBorder = 2
     gridStart = 80
-    buttonSize = (50, rowHeight)
-    menuText = "Game Name                    Players"
-    menuFont = pygame.font.SysFont("Arial", 20, bold = True)
-    menuTextSurface =
+    buttonSize = (window.get_width()//10, rowHeight)
 
     titleText = "Private Game Lobbies"
-    titleFont = pygame.font.SysFont("Arial", 10, bold = True)
-    joinButton = Button("Join", titleFont, black, white, buttonSize, (window.get_width()-100, gridStart + rowBorder))
+    titleFont = pygame.font.SysFont("Arial", 30, bold = True)
+    titleTextSurface = titleFont.render(titleText, 1, white)
 
+    #menu column titles
+    gameName = "Game Name"
+    players = "Players"
+    menuFont = pygame.font.SysFont("Arial", 16, bold = True)
+    gameNameSurface = menuFont.render(gameName, 1, white)
+    playersSurface = menuFont.render(players, 1, white)
+
+
+    buttonFont = pygame.font.SysFont("Arial", 15, bold = True)
+
+    reloadPrivateGamesButtonText = "Reload"
+    joinButton = Button("Join", buttonFont, black, white, buttonSize, (window.get_width()-100, gridStart + rowBorder))
+    reloadButton = Button(reloadPrivateGamesButtonText, buttonFont, black, white, buttonSize, ((window.get_width() - buttonSize[0])//2, (window.get_height() - buttonSize[1])//2 - 10))
+    buttons = [reloadButton]
+    active = False
+    run = True
+    while run:
+        window.blit(titleTextSurface, ((window.get_width() - titleTextSurface.get_width())//2, titleTextSurface.get_height()//2 + 10))
+
+        for button in buttons:
+            button.draw(window)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+                pygame.quit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                pos = pygame.mouse.get_pos()
+                for button in buttons:
+                    if button.isClicked(pos):
+                        #gets updated private games list from server
+                        if button.getText() == reloadPrivateGamesButtonText:
+                            getPrivateGames = Packet("getPrivateGames", 0)
+                            sendMessage(getPrivateGames)
+                            privateGames = receiveMessage()
+                            numGames = len(privateGames)
+                            if window.get_height() - numGames * (2 * rowBorder + rowHeight) - gridStart < 0:
+                                numGamesDisplayed = (window.get_height() - gridStart) // (2 * rowBorder + rowHeight)
+                            else:
+                                numGamesDisplayed = numGames
+                            for i in range(numGamesDisplayed):
+                                game = privateGames[i]
+                                name = game.getName()
+                                numPlayers = f"game.getNumPlayers()/4"
+                                gameID = game.getGameID()
+
+                        if button.getText() ==
+
+
+        pygame.display.flip()
 
 
 def inputNameScreen(screenAfter: str):
@@ -198,7 +248,7 @@ def inputNameScreen(screenAfter: str):
         clientSocket.connect((serverIp, serverPort))
         player.setSocket(clientSocket)
 
-        packets = receiveMessage(player.getSocket())
+        packets = receiveMessage()
         if not packets: serverClosed()
         for packet in packets:
             print(f"received from server packets: {str(packet)}")
@@ -233,7 +283,7 @@ def inputNameScreen(screenAfter: str):
                     if confirmButton.isClicked(pos):
                         run = False
                         message = Packet("setPlayerName", inputText)
-                        sendMessage(player.getSocket(), message)
+                        sendMessage(message)
                         loadScreen(screenAfter)
                     if inputRectangle.collidepoint(pos):
                         active = True
@@ -244,7 +294,7 @@ def inputNameScreen(screenAfter: str):
                     if event.key == pygame.K_RETURN:
                         run = False
                         message = Packet("setPlayerName", inputText)
-                        sendMessage(player.getSocket(), message)
+                        sendMessage(message)
                         loadScreen(screenAfter)
                     if event.key == pygame.K_BACKSPACE:
                         inputText = inputText[:-1]
@@ -296,7 +346,7 @@ def draw_opponent_cards(surface, opponent_counts):
     """
     Draws opponents' hands as face-down cards positioned around the window.
     """
-    card_back_image = pygame.image.load(f"cards{typeOfSlash}Back Red 1.png").convert_alpha()  # Load a card back image
+    card_back_image = pygame.image.load(f"cards{fileSlash}Back Red 1.png").convert_alpha()  # Load a card back image
     card_width, card_height = 80, 120  # Card size
     card_spacing = 20  # Space between cards
 
@@ -364,7 +414,7 @@ def draw_hand(surface, hand):
 
         # Load card image
         try:
-            card_image = pygame.image.load(f"cards{typeOfSlash}{card}.png").convert_alpha()
+            card_image = pygame.image.load(f"cards{fileSlash}{card}.png").convert_alpha()
             card_image = pygame.transform.scale(card_image, (card_width, card_height))
         except:
             print(f"Error loading image for {card}")
