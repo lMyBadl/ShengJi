@@ -41,13 +41,13 @@ font = pygame.font.SysFont("Arial", 16, bold=True)
 opponentCardCounts = {}
 
 clock = pygame.time.Clock()
-def sendMessage(packet):
+def sendMessage(packet: list):
     """
     :param packet: A packet object to send
     """
     player.getSocket().sendall(pickle.dumps(packet))
 
-def receiveMessage():
+def receiveMessage() -> list:
     """
     :return: A packet object
     """
@@ -130,7 +130,7 @@ def createPrivateGame():
                         gameName = gameName[:-1]
                     elif event.key == pygame.K_RETURN:
                         if active:
-                            message = Packet("setGameName", gameName)
+                            message = Packet("setPrivateGameName", gameName)
                             run = False
                             packets = [joinMessage, message]
                             sendMessage(packets)
@@ -139,7 +139,7 @@ def createPrivateGame():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 pos = pygame.mouse.get_pos()
                 if confirmButton.isClicked(pos):
-                    message = Packet("setGameName", gameName)
+                    message = Packet("setPrivateGameName", gameName)
                     run = False
                     packets = [joinMessage, message]
                     sendMessage(packets)
@@ -172,12 +172,15 @@ def privateGameLobby():
     titleTextSurface = titleFont.render(titleText, 1, white)
 
     #menu column titles
-    gameName = "Game Name"
-    players = "Players"
-    menuFont = pygame.font.SysFont("Arial", 16, bold = True)
-    gameNameSurface = menuFont.render(gameName, 1, white)
-    playersSurface = menuFont.render(players, 1, white)
+    gameHeader = "Game Name"
+    playerHeader = "Players"
+    menuFont = pygame.font.SysFont("Arial", 12, bold = True)
+    gameHeaderSurface = menuFont.render(gameHeader, 1, white)
+    playerHeaderSurface = menuFont.render(playerHeader, 1, white)
 
+    menuBorderRectangle = pygame.Rect(window.get_width()//10, 50, 8*window.get_width()//10, 20)
+    playerBorderRectangle = pygame.Rect(2*window.get_width()//10, 50, 2*window.get_width()//10, 20)
+    borderRectangles = [menuBorderRectangle, playerBorderRectangle]
 
     buttonFont = pygame.font.SysFont("Arial", 15, bold = True)
 
@@ -185,10 +188,19 @@ def privateGameLobby():
     joinButton = Button("Join", buttonFont, black, white, buttonSize, (window.get_width()-100, gridStart + rowBorder))
     reloadButton = Button(reloadPrivateGamesButtonText, buttonFont, black, white, buttonSize, ((window.get_width() - buttonSize[0])//2, (window.get_height() - buttonSize[1])//2 - 10))
     buttons = [reloadButton]
+
+    joinButtons = []
+    gameIDs = []
+    gameNames = []
+    playerNumbers = []
+
     active = False
     run = True
     while run:
         window.blit(titleTextSurface, ((window.get_width() - titleTextSurface.get_width())//2, titleTextSurface.get_height()//2 + 10))
+        window.blit(gameHeaderSurface, (menuBorderRectangle.x + 2, menuBorderRectangle.y + 2))
+        for borderRectangle in borderRectangles:
+            pygame.draw.rect(window, white, borderRectangle, 2)
 
         for button in buttons:
             button.draw(window)
@@ -213,11 +225,13 @@ def privateGameLobby():
                                 numGamesDisplayed = numGames
                             for i in range(numGamesDisplayed):
                                 game = privateGames[i]
-                                name = game.getName()
-                                numPlayers = f"game.getNumPlayers()/4"
-                                gameID = game.getGameID()
+                                gameNames.append(game.getName())
+                                playerNumbers.append(game.getNumPlayers())
+                                gameIDs.append(privateGames[i].getGameID())
 
-                        if button.getText() ==
+                        if button.getText() == "Join":
+                            joinMessage = Packet("joinPrivateGame", gameIDs[buttons.index(button)])
+                            sendMessage(joinMessage)
 
 
         pygame.display.flip()
@@ -282,7 +296,7 @@ def inputNameScreen(screenAfter: str):
                     pos = pygame.mouse.get_pos()
                     if confirmButton.isClicked(pos):
                         run = False
-                        message = Packet("setPlayerName", inputText)
+                        message = [Packet("setPlayerName", inputText)]
                         sendMessage(message)
                         loadScreen(screenAfter)
                     if inputRectangle.collidepoint(pos):
@@ -293,7 +307,7 @@ def inputNameScreen(screenAfter: str):
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_RETURN:
                         run = False
-                        message = Packet("setPlayerName", inputText)
+                        message = [Packet("setPlayerName", inputText)]
                         sendMessage(message)
                         loadScreen(screenAfter)
                     if event.key == pygame.K_BACKSPACE:

@@ -14,13 +14,13 @@ games = {}
 
 dataSize = 1024 * 4
 
-def sendMessage(connection, packet):
+def sendMessage(connection, packet: list):
     """
     Available actions: sendCard, assignPlayerNum, setDataSize
     """
     connection.sendall(pickle.dumps(packet))
 
-def receiveMessage(self):
+def receiveMessage(self) -> list:
     """
     :return: A dictionary containing the action name as the key and the action as the value. If no message is received then returns {None:None}
     """
@@ -68,43 +68,8 @@ def clientHandler(client: tuple, playerNum, gameCode):
 
     # Remove the client from the dictionary upon disconnect
     print(f"Player {playerId} disconnected.")
-    del clients[playerId]
-    conn.close()
-
-
-def threaded_client(conn, p, gameCode):
-    global idCount
-    conn.send(str.encode(str(p)))
-
-    reply = ""
-    while True:
-        try:
-            data = conn.recv(4096).decode()
-
-            if gameCode in games:
-                game = games[gameCode]
-
-                if not data:
-                    break
-                else:
-                    if data == "reset":
-                        game.resetWent()
-                    elif data != "get":
-                        game.play(p, data)
-
-                    conn.sendall(pickle.dumps(game))
-            else:
-                break
-        except:
-            break
-
-    print("Lost socket")
-    try:
-        del games[gameCode]
-        print("Closing Game", gameCode)
-    except:
-        pass
     idCount -= 1
+    del clients[playerId]
     conn.close()
 
 """
