@@ -97,8 +97,6 @@ def createPrivateGame():
     active = False
 
     run = True
-
-
     while run:
         clock.tick(60)
 
@@ -126,6 +124,8 @@ def createPrivateGame():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 run = False
+
+            #checking for typing
             if event.type == pygame.KEYDOWN:
                 if active:
                     if event.key == pygame.K_BACKSPACE:
@@ -161,10 +161,15 @@ def loadPrivateGameLobby():
     #join button can change color/pop out if hovered over (check mouse pos every pygame.event, not just when clicked
     rowHeight = 46
     rowBorder = 2
+    gridStart = 80
+    buttonSize = (50, rowHeight)
+    menuText = "Game Name                    Players"
+    menuFont = pygame.font.SysFont("Arial", 20, bold = True)
+    menuTextSurface =
 
     titleText = "Private Game Lobbies"
     titleFont = pygame.font.SysFont("Arial", 10, bold = True)
-    joinButton = Button("Join", titleFont, black, white, (100, rowHeight), )
+    joinButton = Button("Join", titleFont, black, white, buttonSize, (window.get_width()-100, gridStart + rowBorder))
 
 
 
