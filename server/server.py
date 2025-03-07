@@ -14,19 +14,27 @@ games = {}
 
 dataSize = 1024 * 4
 
-def sendMessage(connection, packet: list):
-    """
-    Available actions: sendCard, assignPlayerNum, setDataSize
-    """
-    connection.sendall(pickle.dumps(packet))
+# Set the host to listen on all network interfaces
+host = 'localhost'
+# Define the port (ensure this port is open on your AWS instance)
+port = 12345
 
-def receiveMessage(self) -> list:
+# Create a TCP/IP socket
+serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+serverSocket.bind((host, port))
+
+def sendMessageToAddress(packet: list, address):
+    serverSocket.sendto(pickle.dumps(packet), address)
+
+def sendMessageToAll(packet: list):
+    serverSocket.sendall(pickle.dumps(packet))
+def receiveMessage() -> list:
     """
     :return: A dictionary containing the action name as the key and the action as the value. If no message is received then returns {None:None}
     """
-    data = self.socket.recv(dataSize)
+    data = serverSocket.recv(dataSize)
     if not data:
-        return None
+        return [None]
     return pickle.loads(data)
 
 def clientHandler(client: tuple, playerNum, gameCode):
@@ -45,8 +53,8 @@ def clientHandler(client: tuple, playerNum, gameCode):
 
     clients[playerId] = conn  # Store the player socket
 
-    message = [Packet("assignId", playerId), Packet("setDataSize", dataSize)]
-    sendMessage(conn, message)
+    message = [Packet("assignId", playerId)]
+    sendMessageToAddress(message, addr)
     print(f"New socket from {playerId} at {addr}")
 
     while run:
@@ -104,21 +112,14 @@ def deal_cards(gameId: int):
 
 def main():
     global idCount, gameId
-    # Set the host to listen on all network interfaces
-    host = 'localhost'
-    # Define the port (ensure this port is open on your AWS instance)
-    port = 12345
-
-    # Create a TCP/IP socket
-    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket.bind((host, port))
-    server_socket.listen()  # Start listening for incoming connections
+    serverSocket.listen()  # Start listening for incoming connections
     print(f"Server listening on {host}:{port}")
 
     while True:
-        conn, addr = server_socket.accept()
+        clientSocket = conn, addr = serverSocket.accept()
         print("Connected to:", addr)
-
+        message = [Packet("setDataSize", dataSize)]
+        clientSocket.sendall(pickle.dumps(message))
         idCount += 1
         gameId = (idCount - 1) // 4
         p = 0
@@ -139,5 +140,4 @@ def main():
 
         start_new_thread(clientHandler, ((conn, addr), p, gameId))
 
-if __name__ == '__main__':
-    main()
+main()
