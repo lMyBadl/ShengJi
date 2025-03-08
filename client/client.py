@@ -193,6 +193,8 @@ def privateGameLobby():
     gameIDs = []
     gameNames = []
     playerNumbers = []
+    
+    displayedGames = []
 
     active = False
     run = True
@@ -217,18 +219,24 @@ def privateGameLobby():
                         if button.getText() == reloadPrivateGamesButtonText:
                             getPrivateGames = Packet("getPrivateGames", 0)
                             sendMessage(getPrivateGames)
-                            privateGames = receiveMessage()
+                            # Should immediately get back private games
+                            packets = receiveMessage()
+                            for packet in packets:
+                                privateGames = packet.getValue()
                             numGames = len(privateGames)
                             if window.get_height() - numGames * (2 * rowBorder + rowHeight) - gridStart < 0:
                                 numGamesDisplayed = (window.get_height() - gridStart) // (2 * rowBorder + rowHeight)
                             else:
                                 numGamesDisplayed = numGames
+                            displayedGames.extend(privateGames[:numGamesDisplayed]
+                            #dont need to do anything below this since theyre all stored as simple game objects
                             for i in range(numGamesDisplayed):
                                 game = privateGames[i]
+                                """
                                 gameNames.append(game.getName())
                                 playerNumbers.append(game.getNumPlayers())
                                 gameIDs.append(privateGames[i].getGameID())
-
+                                """
                         if button.getText() == "Join":
                             joinMessage = Packet("joinPrivateGame", gameIDs[buttons.index(button)])
                             sendMessage(joinMessage)
