@@ -23,16 +23,19 @@ port = 12345
 serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 serverSocket.bind((host, port))
 
-def sendMessageToAddress(packet: list, address):
-    serverSocket.sendto(pickle.dumps(packet), address)
+def sendMessage(packet: list, clientSocket):
+    """
+    Sends a message to a specified address
+    :param packet: The message sent in Packet object form
+    :param clientSocket: The destination (client's Socket)
+    """
+    clientSocket.sendall(pickle.dumps(packet))
 
-def sendMessageToAll(packet: list):
-    serverSocket.sendall(pickle.dumps(packet))
-def receiveMessage() -> list:
+def receiveMessage(clientSocket) -> list:
     """
     :return: A dictionary containing the action name as the key and the action as the value. If no message is received then returns {None:None}
     """
-    data = serverSocket.recv(dataSize)
+    data = clientSocket.recv(dataSize)
     if not data:
         return [None]
     return pickle.loads(data)
@@ -42,7 +45,7 @@ def clientHandler(client: tuple, playerNum, gameCode):
     Handles communication with a connected client.
     """
     run = gameCode in games
-    conn, addr = client
+    clientSocket, addr = client
 
     # gets the pre-generated player id from the game
     game = games[gameCode]
@@ -51,15 +54,15 @@ def clientHandler(client: tuple, playerNum, gameCode):
     playerId = player.getId()
 
 
-    clients[playerId] = conn  # Store the player socket
+    clients[playerId] = clientSocket  # Store the player socket
 
     message = [Packet("assignId", playerId)]
-    sendMessageToAddress(message, addr)
+    sendMessage(message, clientSocket)
     print(f"New socket from {playerId} at {addr}")
 
     while run:
         try:
-            data = conn.recv(dataSize)
+            data = clientSocket.recv(dataSize)
             if not data: break
 
             packets = pickle.loads(data)
@@ -78,7 +81,7 @@ def clientHandler(client: tuple, playerNum, gameCode):
     print(f"Player {playerId} disconnected.")
     idCount -= 1
     del clients[playerId]
-    conn.close()
+    clientSocket.close()
 
 """
 def deal_cards(gameId: int):
@@ -116,10 +119,10 @@ def main():
     print(f"Server listening on {host}:{port}")
 
     while True:
-        clientSocket = conn, addr = serverSocket.accept()
-        print("Connected to:", addr)
+        clientSocket, clientAddress = serverSocket.accept()
+        print("Connected to:", clientAddress)
         message = [Packet("setDataSize", dataSize)]
-        clientSocket.sendall(pickle.dumps(message))
+        sendMessage(message, clientSocket)
         idCount += 1
         gameId = (idCount - 1) // 4
         p = 0
@@ -138,6 +141,6 @@ def main():
             p = 3
             games[gameId].setReady(True)  # Generate a unique player ID
 
-        start_new_thread(clientHandler, ((conn, addr), p, gameId))
+        start_new_thread(clientHandler, ((clientSocket, clientAddress), p, gameId))
 
 main()
