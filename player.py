@@ -1,8 +1,11 @@
 class Player:
+    """
+    A player class with its socket and address stored as well for easy accessing
+    """
     def __init__(self):
         self.hand = []
-        self.playerId = None
-        self.socket = None
+        self.playerId = None #We don't store either of these b/c I use them as a placeholder when creating the game
+        self.socket = None #I set these later when the player actually joins a certain game
 
     def __len__(self):
         return self.hand.__len__()

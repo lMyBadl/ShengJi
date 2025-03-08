@@ -1,7 +1,7 @@
 class Packet:
     def __init__(self, action: str, value):
         """
-        sends an action-value pair encased as an object
+        Sends an action-value pair encased as an object
         Client send options: playCard, getCardNumbers, setPrivateGameName, setReady, setPlayerName, getPrivateGames, joinPrivateGame
         Server send options: assignId, setDataSize,
         """

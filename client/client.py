@@ -7,6 +7,7 @@ from packet import Packet
 from button import Button
 import platform
 
+#file slash differs between systems to we check that here in order to pull pngs of cards
 systemName = platform.system()
 if systemName == "linux":
     fileSlash = "/"
@@ -22,7 +23,7 @@ blue = (0, 0, 255)
 
 # Set up Pygame
 pygame.init()
-screenWidth, screenHeight = 1500, 900
+screenWidth, screenHeight = 500, 500
 window = pygame.display.set_mode((screenWidth, screenHeight), pygame.RESIZABLE)
 pygame.display.set_caption("Card Game Client")
 
@@ -32,7 +33,7 @@ serverIp = "localhost"
 serverPort = 12345
 dataSize = 1024
 
-player = Player()
+player = Player() #creates player object to organize client data
 
 selectedCardIndex = None  # Index of the selected card
 animatingCard = None  # Track which card is being animated
@@ -53,7 +54,7 @@ def receiveMessage() -> list:
     """
     data = player.getSocket().recv(dataSize)
     if not data:
-        return None
+        return [None]
     return pickle.loads(data)
 
 def serverClosed():

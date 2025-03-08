@@ -1,5 +1,8 @@
 from card_logic import Deck
 class ShengJi:
+    """
+    An object which controls the logic and rules behind the card game "ShengJi", aka Tractor or Finding Friends
+    """
     def __init__(self, gameId: int, player0, player1, player2, player3):
         self.name = None
         self.trumpSuit = None
@@ -12,7 +15,7 @@ class ShengJi:
         self.level = 2
         self.deck = Deck(True, 2)
         self.deck.setTrumpValue(self.level)
-        self.points = {0, 0, 0, 0}
+        self.playerPoints = [0, 0, 0, 0]
 
         self.moves = [[], [], [], []]
         self.trickStarter = 0
@@ -110,3 +113,10 @@ class ShengJi:
 
     def getName(self) -> str:
         return self.name
+
+    def addPointsToPlayer(self, points: int, playerNum: int):
+        """
+        :param points: Integer of points added
+        :param playerNum: Index of player [0, 1, 2, 3]
+        """
+        self.playerPoints[playerNum] += points
