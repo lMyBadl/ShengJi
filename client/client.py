@@ -217,28 +217,24 @@ def privateGameLobby():
                     if button.isClicked(pos):
                         #gets updated private games list from server
                         if button.getText() == reloadPrivateGamesButtonText:
-                            getPrivateGames = Packet("getPrivateGames", 0)
+                            getPrivateGames = [Packet("getPrivateGames", 0)]
                             sendMessage(getPrivateGames)
                             # Should immediately get back private games
                             packets = receiveMessage()
-                            for packet in packets:
-                                privateGames = packet.getValue()
+                            privateGames = packets[0].getValue()
                             numGames = len(privateGames)
+
                             if window.get_height() - numGames * (2 * rowBorder + rowHeight) - gridStart < 0:
                                 numGamesDisplayed = (window.get_height() - gridStart) // (2 * rowBorder + rowHeight)
                             else:
                                 numGamesDisplayed = numGames
-                            displayedGames.extend(privateGames[:numGamesDisplayed]
-                            #dont need to do anything below this since theyre all stored as simple game objects
-                            for i in range(numGamesDisplayed):
-                                game = privateGames[i]
-                                """
-                                gameNames.append(game.getName())
-                                playerNumbers.append(game.getNumPlayers())
-                                gameIDs.append(privateGames[i].getGameID())
-                                """
+
+                            #putting each displayed game in a dictionary so we can access them by their IDs later
+
+                            displayedGames = privateGames[:numGamesDisplayed]
+
                         if button.getText() == "Join":
-                            joinMessage = Packet("joinPrivateGame", gameIDs[buttons.index(button)])
+                            joinMessage = [Packet("joinPrivateGame", displayedGames[buttons.index(button)].getGameID())]
                             sendMessage(joinMessage)
 
 
@@ -355,14 +351,11 @@ def menuScreen():
                             pygame.quit()
                         else:
                             inputNameScreen(button.getText())
-                        """
-                        elif buttonText == "Join Random Game":
-                            enterNameScreen()
-                        elif buttonText == "Join Private Game":
-                            joinPrivateGame()"""
                             #Yuan is dumb;
 
 menuScreen()
+
+
 
 def draw_opponent_cards(surface, opponent_counts):
     """

@@ -124,6 +124,7 @@ def main():
         message = [Packet("setDataSize", dataSize)]
         sendMessage(message, clientSocket)
         idCount += 1
+
         gameId = (idCount - 1) // 4
         p = 0
         if idCount % 4 == 1:
