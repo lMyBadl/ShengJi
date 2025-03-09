@@ -1,15 +1,16 @@
 from card_logic import Deck
+from player import Player
 class ShengJi:
     """
     An object which controls the logic and rules behind the card game "ShengJi", aka Tractor or Finding Friends
     """
-    def __init__(self, gameId: int, player0, player1, player2, player3):
+    def __init__(self, gameId: int):
         self.name = None
         self.trumpSuit = None
 
-        self.gameId = gameId
+        self.gameID = gameId
         self.ready = False
-        self.players = [player0, player1, player2, player3]
+        self.players = [Player(), Player(), Player(), Player()]
         self.playersWent = [False, False, False, False]
 
         self.level = 2
@@ -101,7 +102,7 @@ class ShengJi:
 
     def getPlayerFromId(self, playerId: int):
         for player in self.players:
-            if player.getId() is playerId:
+            if player.getID() is playerId:
                 return player
         raise Exception(f"Player id {playerId} not found.")
 
@@ -120,3 +121,21 @@ class ShengJi:
         :param playerNum: Index of player [0, 1, 2, 3]
         """
         self.playerPoints[playerNum] += points
+
+    def addNewPlayer(self, player) -> int:
+        """
+
+        :param player: The player object to add
+        :return: 0, 1, 2, or 3 if player is added, -1 if unavailable
+        """
+        for i in range(4):
+            if not self.players[i].getName():
+                self.players[i] = player
+                return i
+        return -1
+
+    def isFilled(self):
+        return self.players[0].getName() and self.players[1].getName() and self.players[2].getName() and self.players[3].getName()
+
+    def getID(self):
+        return self.gameID

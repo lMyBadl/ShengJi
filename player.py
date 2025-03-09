@@ -4,8 +4,10 @@ class Player:
     """
     def __init__(self):
         self.hand = []
-        self.playerId = None #We don't store either of these b/c I use them as a placeholder when creating the game
+        self.playerNumber = None #We don't store either of these b/c I use them as a placeholder when creating the game
         self.socket = None #I set these later when the player actually joins a certain game
+        self.name = None
+
 
     def __len__(self):
         return self.hand.__len__()
@@ -28,8 +30,8 @@ class Player:
     def getCard(self, index: int) -> object:
         return self.hand[index]
 
-    def getId(self) -> int:
-        return self.playerId
+    def getID(self) -> int:
+        return self.playerNumber
 
     def setSocket(self, socket):
         """
@@ -44,4 +46,10 @@ class Player:
         return self.socket
 
     def setId(self, playerId: int):
-        self.playerId = playerId
+        self.playerNumber = playerId
+
+    def getName(self) -> str:
+        return self.name
+
+    def setName(self, name: str):
+        self.name = name
