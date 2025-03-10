@@ -139,3 +139,10 @@ class ShengJi:
 
     def getID(self):
         return self.gameID
+
+    def getPlayersJoined(self):
+        count = 0
+        for player in self.players:
+            if player.getName(): #if player has a name
+                count += 1
+        return count

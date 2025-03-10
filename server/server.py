@@ -5,11 +5,12 @@ import pickle
 from shengJi import ShengJi
 from player import Player
 from packet import Packet
+from simpleGame import SimpleGame
 
 # Global list to keep track of connected clients
 clients = {}
 gameId = 0
-privateGames = {} #a dictionary to store the game as the key and the simplified game as the value
+privateGames = {} #a dictionary to store the gameID as the key and the game as the value
 randomGames = []
 
 dataSize = 1024 * 4
@@ -23,6 +24,7 @@ port = 12345
 serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 serverSocket.bind((host, port))
 
+#Non client-handling methods
 def sendMessage(packet: list, clientSocket):
     """
     Sends a message to a specified address
@@ -40,6 +42,14 @@ def receiveMessage(clientSocket) -> list:
         return [None]
     return pickle.loads(data)
 
+def getAllPrivateGamesAsSimplifiedGames() -> list:
+    listOfGames = []
+    for privateGame in privateGames.values():
+        simplifiedGame = SimpleGame(privateGame.getName(), privateGame.getPlayersJoined(), privateGame.getID())
+        listOfGames.append(simplifiedGame)
+    return listOfGames
+
+#threaded client handling methods
 def clientHandler(player, playerNum: int, gameID: int, gameType: str):
     """
     Handles communication with a connected client.
@@ -68,16 +78,7 @@ def clientHandler(player, playerNum: int, gameID: int, gameType: str):
     run = True
     while run:
         try:
-            data = clientSocket.recv(dataSize)
-            if not data: break
-
-            packets = pickle.loads(data)
-            for packet in packets:
-                action = packet.getAction()
-                value = packet.getValue()
-                if action == "setGameName":
-                    game.setName(value)
-            print(f"Received message from {playerID}: {str(packets)}")
+            receiveMessage(clientSocket)
 
         except Exception as e:
             print(f"Error with player {playerID}: {e}")
@@ -88,34 +89,30 @@ def clientHandler(player, playerNum: int, gameID: int, gameType: str):
     del clients[playerID]
     clientSocket.close()
 
-"""
-def deal_cards(gameID: int):
-    
-    num_players = 4
-    if num_players == 0:
-        return
+def joinPrivateG
 
-    cards_per_player = len(deck) // num_players
-    print(f"Dealing {cards_per_player} cards to each of {num_players} players.")
-
-    # Store each player's hand
-    hands = {}
-    for i, playerNumber in enumerate(client_list.keys()):
-        hands[playerNumber] = deck[i * cards_per_player:(i + 1) * cards_per_player]
-
-    # Notify each player of their hand and opponent card counts
-    for playerNumber, conn in client_list.items():
-        opponent_counts = {pid: len(hands[pid]) for pid in hands if pid != playerNumber}
-        message = {
-            "action": "deal_cards",
-            "player_hand": hands[playerNumber],
-            "opponent_counts": opponent_counts
-        }
-        try:
-            conn.sendall(json.dumps(message).encode())
-            print(f"Sent {len(hands[playerNumber])} cards to player {playerNumber} with opponents: {opponent_counts}")
-        except Exception as e:
-            print(f"Error sending cards to player {playerNumber}: {e}")"""
+def privateLobbyWaiting(player):
+    """
+    Actions for the client while they are watching the private lobby screen
+    :param player: Player object of the client
+    """
+    clientSocket = player.getSocket()
+    clientName = player.getName()
+    run = True
+    while run:
+        packets = receiveMessage(clientSocket)
+        for packet in packets:
+            action = packet.getAction()
+            if action == "joinRandomGame":
+                run = False
+            elif action == "setPrivateGameName":
+                run = False
+            elif action == "getPrivateGames":
+                listOfGames = getAllPrivateGamesAsSimplifiedGames()
+                message = [Packet("returnPrivateGames", listOfGames)]
+                sendMessage(message, clientSocket)
+            elif action == "joinPrivateGame":
+                pass
 
 
 def main():
@@ -140,13 +137,11 @@ def main():
         #Client then sends if they are getting private privateGames or joining a random game
         packets = receiveMessage(clientSocket)
         for packet in packets:
-
             if packet.getAction() == "getPrivateGames":
-                listOfGames = []
-                for simplifiedGame in privateGames.values():
-                    listOfGames.append(simplifiedGame)
-                message = [Packet("getPrivateGames", listOfGames)]
+                listOfGames = getAllPrivateGamesAsSimplifiedGames()
+                message = [Packet("returnPrivateGames", listOfGames)]
                 sendMessage(message, clientSocket)
+                start_new_thread(privateLobbyWaiting, (player,))
             elif packet.getAction() == "joinRandomGame":
                 lastRandomGame = randomGames[-1]
                 if not lastRandomGame.isFilled():
@@ -157,6 +152,8 @@ def main():
                     randomGames.append(ShengJi(gameId))
                     lastRandomGame = randomGames[-1]
                     lastRandomGame.addNewPlayer(player)
+            elif packet.getAction() == "setPrivateGameName":
+
 
 
         """

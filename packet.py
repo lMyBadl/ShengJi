@@ -2,8 +2,9 @@ class Packet:
     def __init__(self, action: str, value):
         """
         Sends an action-value pair encased as an object
-        Client send options: playCard, getCardNumbers, setPrivateGameName, setReady, setPlayerName, getPrivateGames, joinPrivateGame
-        Server send options: assignId, setDataSize,
+        Lobby Actions: setPrivateGameName, getPrivateGames, joinPrivateGame, joinRandomGame
+        Client send options: playCard, getCardNumbers, setReady, setPlayerName
+        Server send options: assignId, setDataSize
         """
         self.action = action
         self.value = value
