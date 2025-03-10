@@ -129,6 +129,7 @@ def createPrivateGame(player, gameName):
     privateGame.setName(gameName)
 
     message = [Packet("createNewPrivateGame", gameName)]
+    sendMessage(message, player)
 
 def privateLobbyWaiting(player):
     """
