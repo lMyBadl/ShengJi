@@ -109,6 +109,12 @@ class ShengJi:
     def getPlayerFromIndex(self, index: int):
         return self.players[index]
 
+    def getPlayerFromName(self, name: str):
+        for player in self.players:
+            if player.name == name:
+                return player
+        return None
+
     def setName(self, name: str):
         self.name = name
 
@@ -146,3 +152,6 @@ class ShengJi:
             if player.getName(): #if player has a name
                 count += 1
         return count
+
+    def getPlayerIndex(self, player):
+        return self.players.index(player)

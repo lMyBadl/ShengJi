@@ -10,8 +10,8 @@ class Packet:
             First join:
         setPlayerName (name)            -> gotPlayerName (name)
         
-            Waiting in lobby:
-        setPrivateGameName (gameName)   -> createNewPrivateGame (gameName)
+            Waiting in menu screen:
+        setPrivateGameName (gameName)   -> createdNewPrivateGame (gameName)
         getPrivateGames ("")            -> returnPrivateGames (list of simplified private games)
         joinPrivateGame (gameID)        -> if joined: joinedPrivateGame (gameID) else: failedToJoinPrivateGame (reason)
         joinRandomGame ("")             -> joinedRandomGame (gameID)
@@ -25,8 +25,8 @@ class Packet:
             Joining a game:
         assignID (playerID)             -> gotPlayerID (playerID)
         
-        Client send options: playCard, getCardNumbers, setReady, setPlayerName
-        Server send options: assignId, setDataSize
+            Waiting in game lobby:
+        setTotalPlayers (numPlayers)    -> gotTotalPlayers (numPlayers)
         """
         self.action = action
         self.value = value

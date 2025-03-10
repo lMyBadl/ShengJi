@@ -75,51 +75,41 @@ def getPrivateGame(gameID: int):
         return None
     return privateGames[gameID]
 
+def startPrivateGame(gameID: int):
+    """
+    Starts a game with the specified gameID
+    """
+    global privateGames
+
+def wrongPacketMessageReceived(player):
+    """
+    Action to take if the player object passed doesn't return the expected packet
+    """
+    player.getSocket().close()
+
+
 #threaded client handling methods
-def clientHandler(player, playerNum: int, gameID: int, gameType: str):
-    """
-    Handles communication with a connected client.
-    :param player: Player object
-    :param playerNum: The player number in the game [0, 1, 2, 3]
-    :param gameID: The game ID of the game the player is connected to
-    :param gameType: private, waiting, or random
-    :return:
-    """
-    clientSocket = player.getSocket()
-    if gameType == "private":
-
-    elif gameType == "random":
-
-    elif gameType == "waiting":
-
-    playerID = player.getID()
-
-
-    clients[playerID] = clientSocket  # Store the player socket
-
-    message = [Packet("assignId", playerID)]
-    sendMessage(message, clientSocket)
-    #print(f"New socket from {playerId} at {addr}")
-
-    run = True
-    while run:
-        try:
-            receiveMessage(clientSocket)
-
-        except Exception as e:
-            print(f"Error with player {playerID}: {e}")
-            break
-
-    # Remove the client from the dictionary upon disconnect
-    print(f"Player {playerID} disconnected.")
-    del clients[playerID]
-    clientSocket.close()
-
 def joinRandomGame(player):
+    global randomGames
+    mostRecentlyCreatedGame = randomGames[-1]
+    if mostRecentlyCreatedGame.getPlayersJoined() == 4:
+        gameID = getNewGameID()
+        newRandomGame = ShengJi(gameID)
+        randomGames.append(newRandomGame)
+        newRandomGame.addNewPlayer(player)
 
+        message = [Packet("joinedRandomGame", gameID)]
+    else:
+        mostRecentlyCreatedGame.addNewPlayer(player)
+        message = mostRecentlyCreatedGame.getID()
+    sendMessage(message, player.getSocket())
 
 def joinPrivateGame(player, gameID):
-
+    global privateGames
+    if gameID not in privateGames.keys():
+        message = [Packet("failedToJoinPrivateGame", "Private game not found.")]
+    elif privateGames[gameID].getPlayersJoined() == 4:
+        message = [Packet("failedToJoinPrivateGame", "Private game full.")]
 
 def createPrivateGame(player, gameName):
     gameID = getNewGameID() #generate a new gameID
@@ -128,8 +118,27 @@ def createPrivateGame(player, gameName):
     privateGame.addNewPlayer(player)
     privateGame.setName(gameName)
 
-    message = [Packet("createNewPrivateGame", gameName)]
+    message = [Packet("createdNewPrivateGame", gameName)]
     sendMessage(message, player)
+
+    clientSocket = player.getSocket()
+    while True:
+        ready = privateGame.allReady()
+        if ready:
+            break
+        else:
+            numPlayers = 0
+            if not numPlayers == privateGame.getPlayersJoined():
+                numPlayers = privateGame.getPlayersJoined()
+                message = [Packet("setTotalPlayers", numPlayers)]
+                sendMessage(message, clientSocket)
+                packets = receiveMessage(clientSocket)
+                for packet in packets:
+                    if not packet.getAction() == "gotTotalPlayers" or not packet.getValue() == numPlayers:
+                        wrongPacketMessageReceived(player)
+
+    if privateGame.getPlayerIndex(player) == 0:
+        startPrivateGame(gameID)
 
 def privateLobbyWaiting(player):
     """
