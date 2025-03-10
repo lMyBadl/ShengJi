@@ -1,23 +1,6 @@
-dic = {0:"zero", 1:"one", 2:"two", None:None}
+from packet import Packet
+packet = Packet("hi", 3)
+dic = {1:packet, 3:5, "hola":[0,1,2,3]}
 print(dic)
-for num in dic:
-    print(num)
-
-    if num is None:
-        dic[num] = 3
-
+packet.action = "bruh"
 print(dic)
-
-x = (1, 2)
-y = (30, 40)
-
-print(x + y)
-run = True
-x= 0
-while run:
-    msg = ""
-    print("cool", msg)
-    if x == 5:
-        msg = "hi"
-        run = False
-    x+=1
