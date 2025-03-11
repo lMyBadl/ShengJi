@@ -76,6 +76,14 @@ def getPrivateGame(gameID: int):
         return None
     return privateGames[gameID]
 
+def removePrivateGame(gameID: int):
+    global privateGames
+    del(privateGames[gameID])
+
+def removeRandomGame(gameIndex: int):
+    global randomGames
+    del(randomGames[gameIndex])
+
 def wrongPacketMessageReceived(player):
     """
     Action to take if the player object passed doesn't return the expected packet
@@ -108,21 +116,47 @@ def startPrivateGame(gameID: int):
     global privateGames
     game = privateGames[gameID]
 
+def startRandomGame(gameIndex: int):
+    """
+    Starts a game with the specified index
+    """
+    global randomGames
+    game = randomGames[gameIndex]
+
 #threaded client handling methods
 def joinRandomGame(player):
     global randomGames
+    clientSocket = player.getSocket()
     mostRecentlyCreatedGame = randomGames[-1]
     if mostRecentlyCreatedGame.getPlayersJoined() == 4: #game is full
         gameID = getNewGameID()
         newRandomGame = ShengJi(gameID)
         randomGames.append(newRandomGame)
         newRandomGame.addNewPlayer(player)
-
         message = Packet("joinedRandomGame", gameID)
     else: #game isn't full
         mostRecentlyCreatedGame.addNewPlayer(player)
         message = Packet("joinedRandomGame", mostRecentlyCreatedGame.getID())
-    sendMessage(message, player.getSocket())
+    sendMessage(message, clientSocket)
+
+    while not mostRecentlyCreatedGame.getPlayersJoined() == 4:
+        numPlayers = mostRecentlyCreatedGame.getPlayersJoined()
+        if numPlayers == 0:
+
+        message = Packet("numberOfPlayersInGame", numPlayers)
+        sendMessage(message, clientSocket)
+
+        packet = receiveMessage(clientSocket)
+        if not packet.getAction() == "gotTotalPlayers" and not packet.getValue() == numPlayers:
+            wrongPacketMessageReceived(player)
+
+    message = Packet("startingGame", "")
+    sendMessage(message, clientSocket)
+    packet = receiveMessage(clientSocket)
+    if not packet.getAction() == "readyToPlay":
+        wrongPacketMessageReceived(player)
+
+
 
 def joinPrivateGame(player, gameID):
     global privateGames
