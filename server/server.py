@@ -9,7 +9,7 @@ from packet import Packet
 from simpleGame import SimpleGame
 
 # Global list to keep track of connected clients
-clients = {}
+numClients = 0
 globalGameID = 0
 privateGames = {} #a dictionary to store the globalGameID as the key and the game as the value
 randomGames = []
@@ -38,8 +38,10 @@ def receiveMessage(clientSocket):
     """
     :return: The packet object sent by the client. If no message is received then returns None and closes the client socket
     """
+    global numClients
     data = clientSocket.recv(dataSize)
     if not data:
+        numClients -= 1
         clientSocket.close()
         return None
     return pickle.loads(data)
@@ -77,17 +79,44 @@ def getPrivateGame(gameID: int):
     return privateGames[gameID]
 
 def removePrivateGame(gameID: int):
+    """
+    Removes a private game
+    """
     global privateGames
     del(privateGames[gameID])
 
-def removeRandomGame(gameIndex: int):
+def cleanPrivateGames():
+    """
+    Removes empty private games
+    """
+    global privateGames
+    for game in privateGames.values():
+        gameID = game.getID()
+        if game.getPlayersJoined() == 0:
+            removePrivateGame(gameID)
+
+def cleanRandomGames():
+    """
+    Removes empty randomly joined games
+    """
     global randomGames
-    del(randomGames[gameIndex])
+    for game in randomGames:
+        if game.getPlayersJoined() == 0:
+            removeRandomGame(game)
+
+def removeRandomGame(game):
+    """
+    Removes a game created through random game joining
+    """
+    global randomGames
+    del(randomGames[randomGames.index(game)])
 
 def wrongPacketMessageReceived(player):
     """
     Action to take if the player object passed doesn't return the expected packet
     """
+    global numClients
+    numClients -= 1
     player.getSocket().close()
 
 def dealCards(game):
@@ -123,11 +152,21 @@ def startRandomGame(gameIndex: int):
     global randomGames
     game = randomGames[gameIndex]
 
+def gameCleaner():
+    while True:
+        if not numClients == 0:
+            cleanRandomGames()
+            cleanPrivateGames()
+            time.sleep(600)
+        else:
+            time.sleep(3600)
+
 #threaded client handling methods
 def joinRandomGame(player):
     global randomGames
     clientSocket = player.getSocket()
     mostRecentlyCreatedGame = randomGames[-1]
+    gameIndex = randomGames.index(mostRecentlyCreatedGame)
     if mostRecentlyCreatedGame.getPlayersJoined() == 4: #game is full
         gameID = getNewGameID()
         newRandomGame = ShengJi(gameID)
@@ -141,8 +180,6 @@ def joinRandomGame(player):
 
     while not mostRecentlyCreatedGame.getPlayersJoined() == 4:
         numPlayers = mostRecentlyCreatedGame.getPlayersJoined()
-        if numPlayers == 0:
-
         message = Packet("numberOfPlayersInGame", numPlayers)
         sendMessage(message, clientSocket)
 
@@ -156,9 +193,9 @@ def joinRandomGame(player):
     if not packet.getAction() == "readyToPlay":
         wrongPacketMessageReceived(player)
 
+    startRandomGame(gameIndex)
 
-
-def joinPrivateGame(player, gameID):
+def joinPrivateGame(player, gameID: int):
     global privateGames
     if gameID not in privateGames.keys():
         message = Packet("failedToJoinPrivateGame", "Private game not found.")
@@ -167,6 +204,15 @@ def joinPrivateGame(player, gameID):
     else:
         message = Packet("joinedPrivateGame", gameID)
     sendMessage(message, player.getSocket())
+
+    game = privateGames[gameID]
+    while True:
+        if game.allReady():
+            startPrivateGame(gameID)
+            return
+        else:
+            #can add implementation of showing other player's ready state later
+            continue
 
 def createPrivateGame(player, gameName):
     gameID = getNewGameID() #generate a new gameID
@@ -185,6 +231,7 @@ def createPrivateGame(player, gameName):
             break
         else:
             numPlayers = 0
+            #sends an update when the number of players in the game changes
             if not numPlayers == privateGame.getPlayersJoined():
                 numPlayers = privateGame.getPlayersJoined()
                 message = Packet("setTotalPlayers", numPlayers)
@@ -223,11 +270,15 @@ def privateLobbyWaiting(player):
 
 
 def main():
+    global numClients
     serverSocket.listen()  # Start listening for incoming connections
     print(f"Server listening on {host}:{port}")
 
+    start_new_thread(gameCleaner, ())
+
     while True:
         clientSocket, clientAddress = serverSocket.accept()
+        numClients += 1
         player = Player()
         player.setSocket(clientSocket)
         print("Connected to:", clientAddress)
@@ -235,7 +286,7 @@ def main():
         sendMessage(message, clientSocket)
         packet = receiveMessage(clientSocket)
         if not packet.getAction() == "gotDataSize" or not packet.getValue() == dataSize:
-            clientSocket.close()
+            wrongPacketMessageReceived(player)
 
         #Client first sends their name
         packet = receiveMessage(clientSocket)

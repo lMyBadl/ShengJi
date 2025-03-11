@@ -28,6 +28,9 @@ class Packet:
             Waiting in game lobby:
         setTotalPlayers (numPlayers)    -> gotTotalPlayers (numPlayers)
         startingGame ("")               -> readyToPlay (playerName)
+        #can be implemented
+        playerReady (playerName)        -> gotPlayerReady (playerName)
+        playerUnready (playerName)      -> gotPlayerUnready (playerName)
 
             Drawing cards:
         addCardToHand (card)            -> addedCardToHand (card)
