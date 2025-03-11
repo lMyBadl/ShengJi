@@ -112,14 +112,14 @@ def startPrivateGame(gameID: int):
 def joinRandomGame(player):
     global randomGames
     mostRecentlyCreatedGame = randomGames[-1]
-    if mostRecentlyCreatedGame.getPlayersJoined() == 4:
+    if mostRecentlyCreatedGame.getPlayersJoined() == 4: #game is full
         gameID = getNewGameID()
         newRandomGame = ShengJi(gameID)
         randomGames.append(newRandomGame)
         newRandomGame.addNewPlayer(player)
 
         message = Packet("joinedRandomGame", gameID)
-    else:
+    else: #game isn't full
         mostRecentlyCreatedGame.addNewPlayer(player)
         message = Packet("joinedRandomGame", mostRecentlyCreatedGame.getID())
     sendMessage(message, player.getSocket())
