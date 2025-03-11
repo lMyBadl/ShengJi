@@ -93,12 +93,12 @@ def dealCards(game):
         for player in players:
             card = deck.drawCard()
             player.addCardToHand(card)
-            message = [Packet("addCardtoHand", card)]
+            message = [Packet("addCardToHand", card)]
             sendMessage(message, player.getSocket())
             packets = receiveMessage(player.getSocket())
             for packet in packets:
                 if not packet.getAction() == card and not packet.getValue() == "addedCardToHand":
-                    wrongPacketMessageReceived()
+                    wrongPacketMessageReceived(player)
 
             time.sleep(250)
 
@@ -107,6 +107,7 @@ def startPrivateGame(gameID: int):
     Starts a game with the specified gameID
     """
     global privateGames
+    game = privateGames[gameID]
 
 #threaded client handling methods
 def joinRandomGame(player):
