@@ -21,17 +21,31 @@ class ShengJi:
         self.moves = [[], [], [], []]
         self.trickStarter = 0
 
-
-    def play(self, player: int, move: list):
+    def playCard(self, player: int, move: list):
         """
         :param player: [0, 1, 2, 3]
         :param move: The Player's move from an array of Card objects
         """
         self.moves[player] = move
         self.playersWent[player] = True
+        
+    def makeDeck(self):
+        self.deck.makeDeck(self.level)
+
+    def setTrumpSuit(self, trumpSuit: str):
+        self.deck.setTrumpSuit(trumpSuit)
 
     def setTrickStarter(self, player: int):
         self.trickStarter = player
+
+    def levelUp(self):
+        self.level += 1
+
+    def drawCard(self):
+        return self.deck.drawCard()
+    
+    def getDeck(self):
+        return self.deck
 
     @staticmethod
     def getNextPlayer(player: int) -> int:
@@ -155,3 +169,7 @@ class ShengJi:
 
     def getPlayerIndex(self, player):
         return self.players.index(player)
+    
+    def getPlayers(self):
+        return self.players
+    

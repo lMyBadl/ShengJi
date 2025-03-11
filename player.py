@@ -21,6 +21,9 @@ class Player:
     def drawCard(self, deck) -> None:
         self.hand.append(deck.drawCard())
 
+    def addCardToHand(self, card):
+        self.hand.append(card)
+
     def playCard(self, card) -> None:
         self.hand.remove(card)
 

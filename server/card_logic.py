@@ -78,6 +78,9 @@ class Card:
 
     def __str__(self):
         return f"{self.value} of {self.suit}"
+    
+    def __repr__(self):
+        return f"Card({self.value} of {self.suit})"
 
     @staticmethod
     def isValid(value, suit: str) -> bool:

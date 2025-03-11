@@ -1,6 +1,7 @@
 import socket
 from _thread import *
 import pickle
+import time
 
 from shengJi import ShengJi
 from player import Player
@@ -75,18 +76,37 @@ def getPrivateGame(gameID: int):
         return None
     return privateGames[gameID]
 
-def startPrivateGame(gameID: int):
-    """
-    Starts a game with the specified gameID
-    """
-    global privateGames
-
 def wrongPacketMessageReceived(player):
     """
     Action to take if the player object passed doesn't return the expected packet
     """
     player.getSocket().close()
 
+def dealCards(game):
+    """
+    Deals the cards slowly to the players
+    """
+    players = game.getPlayers()
+    game.makeDeck() #2 decks with jokers, 108 cards
+    deck = game.getDeck()
+    while deck:
+        for player in players:
+            card = deck.drawCard()
+            player.addCardToHand(card)
+            message = [Packet("addCardtoHand", card)]
+            sendMessage(message, player.getSocket())
+            packets = receiveMessage(player.getSocket())
+            for packet in packets:
+                if not packet.getAction() == card and not packet.getValue() == "addedCardToHand":
+                    wrongPacketMessageReceived()
+
+            time.sleep(250)
+
+def startPrivateGame(gameID: int):
+    """
+    Starts a game with the specified gameID
+    """
+    global privateGames
 
 #threaded client handling methods
 def joinRandomGame(player):
@@ -101,7 +121,7 @@ def joinRandomGame(player):
         message = [Packet("joinedRandomGame", gameID)]
     else:
         mostRecentlyCreatedGame.addNewPlayer(player)
-        message = mostRecentlyCreatedGame.getID()
+        message = [Packet("joinedRandomGame", mostRecentlyCreatedGame.getID())]
     sendMessage(message, player.getSocket())
 
 def joinPrivateGame(player, gameID):
@@ -137,8 +157,7 @@ def createPrivateGame(player, gameName):
                     if not packet.getAction() == "gotTotalPlayers" or not packet.getValue() == numPlayers:
                         wrongPacketMessageReceived(player)
 
-    if privateGame.getPlayerIndex(player) == 0:
-        startPrivateGame(gameID)
+    startPrivateGame(gameID)
 
 def privateLobbyWaiting(player):
     """

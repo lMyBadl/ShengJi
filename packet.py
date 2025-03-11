@@ -27,6 +27,9 @@ class Packet:
         
             Waiting in game lobby:
         setTotalPlayers (numPlayers)    -> gotTotalPlayers (numPlayers)
+
+            Drawing cards:
+        addCardToHand (card)            -> addedCardToHand (card)
         """
         self.action = action
         self.value = value
