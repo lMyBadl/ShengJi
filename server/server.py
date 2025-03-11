@@ -93,12 +93,11 @@ def dealCards(game):
         for player in players:
             card = deck.drawCard()
             player.addCardToHand(card)
-            message = [Packet("addCardToHand", card)]
+            message = Packet("addCardToHand", card)
             sendMessage(message, player.getSocket())
-            packets = receiveMessage(player.getSocket())
-            for packet in packets:
-                if not packet.getAction() == card and not packet.getValue() == "addedCardToHand":
-                    wrongPacketMessageReceived(player)
+            packet = receiveMessage(player.getSocket())
+            if not packet.getAction() == card and not packet.getValue() == "addedCardToHand":
+                wrongPacketMessageReceived(player)
 
             time.sleep(250)
 
@@ -122,7 +121,7 @@ def joinRandomGame(player):
         message = Packet("joinedRandomGame", gameID)
     else:
         mostRecentlyCreatedGame.addNewPlayer(player)
-        message = [Packet("joinedRandomGame", mostRecentlyCreatedGame.getID())]
+        message = Packet("joinedRandomGame", mostRecentlyCreatedGame.getID())
     sendMessage(message, player.getSocket())
 
 def joinPrivateGame(player, gameID):
