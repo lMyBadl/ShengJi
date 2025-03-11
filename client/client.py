@@ -42,19 +42,21 @@ font = pygame.font.SysFont("Arial", 16, bold=True)
 opponentCardCounts = {}
 
 clock = pygame.time.Clock()
-def sendMessage(packet: list):
+def sendMessage(packet):
     """
     :param packet: A packet object to send
     """
     player.getSocket().sendall(pickle.dumps(packet))
 
-def receiveMessage() -> list:
+def receiveMessage():
     """
+    Receives a message from the server. If nothing is received, calls the method serverClosed().
     :return: A packet object
     """
     data = player.getSocket().recv(dataSize)
     if not data:
-        return [None]
+        serverClosed()
+        return None
     return pickle.loads(data)
 
 def serverClosed():
@@ -79,7 +81,6 @@ def joinRandomGame():
 def createPrivateGame():
     inputFont = pygame.font.SysFont("Arial", 20)
     privateUIFont = pygame.font.SysFont("Arial", 40, bold=True)
-    joinMessage = Packet("joinPrivate", None)
 
     instructionText1 = "Type in the room name. Use the button"
     instructionSurface1 = privateUIFont.render(instructionText1, True, white)
@@ -133,8 +134,7 @@ def createPrivateGame():
                         if active:
                             message = Packet("setPrivateGameName", gameName)
                             run = False
-                            packets = [joinMessage, message]
-                            sendMessage(packets)
+                            sendMessage(message)
                     else:
                         gameName += event.unicode
             if event.type == pygame.MOUSEBUTTONDOWN:
@@ -142,8 +142,7 @@ def createPrivateGame():
                 if confirmButton.isClicked(pos):
                     message = Packet("setPrivateGameName", gameName)
                     run = False
-                    packets = [joinMessage, message]
-                    sendMessage(packets)
+                    sendMessage(message)
                 if inputRectangle.collidepoint(pos):
                     active = True
                 else:
@@ -218,11 +217,11 @@ def privateGameLobby():
                     if button.isClicked(pos):
                         #gets updated private games list from server
                         if button.getText() == reloadPrivateGamesButtonText:
-                            getPrivateGames = [Packet("getPrivateGames", 0)]
+                            getPrivateGames = Packet("getPrivateGames", 0)
                             sendMessage(getPrivateGames)
                             # Should immediately get back private games
-                            packets = receiveMessage()
-                            privateGames = packets[0].getValue()
+                            packet = receiveMessage
+                            privateGames = packets[0].az;;::
                             numGames = len(privateGames)
 
                             if window.get_height() - numGames * (2 * rowBorder + rowHeight) - gridStart < 0:
@@ -235,7 +234,7 @@ def privateGameLobby():
                             displayedGames = privateGames[:numGamesDisplayed]
 
                         if button.getText() == "Join":
-                            joinMessage = [Packet("joinPrivateGame", displayedGames[buttons.index(button)].getGameID())]
+                            joinMessage = Packet("joinPrivateGame", displayedGames[buttons.index(button)].getGameID())
                             sendMessage(joinMessage)
 
 
@@ -267,12 +266,10 @@ def inputNameScreen(screenAfter: str):
         clientSocket.connect((serverIp, serverPort))
         player.setSocket(clientSocket)
 
-        packets = receiveMessage()
-        if not packets: serverClosed()
-        for packet in packets:
-            print(f"received from server packets: {str(packet)}")
-            if packet.getAction() == "setDataSize":
-                dataSize = packet.getValue()
+        packet = receiveMessage()
+        print(f"received from server packets: {str(packet)}")
+        if packet.getAction() == "setDataSize":
+            dataSize = packet.getValue()
 
         while run:
             clock.tick(60)
@@ -301,7 +298,7 @@ def inputNameScreen(screenAfter: str):
                     pos = pygame.mouse.get_pos()
                     if confirmButton.isClicked(pos):
                         run = False
-                        message = [Packet("setPlayerName", inputText)]
+                        message = Packet("setPlayerName", inputText)
                         sendMessage(message)
                         loadScreen(screenAfter)
                     if inputRectangle.collidepoint(pos):
@@ -312,7 +309,7 @@ def inputNameScreen(screenAfter: str):
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_RETURN:
                         run = False
-                        message = [Packet("setPlayerName", inputText)]
+                        message = Packet("setPlayerName", inputText)
                         sendMessage(message)
                         loadScreen(screenAfter)
                     if event.key == pygame.K_BACKSPACE:

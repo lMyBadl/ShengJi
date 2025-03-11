@@ -26,7 +26,7 @@ serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 serverSocket.bind((host, port))
 
 #Non client-handling methods
-def sendMessage(packet: list, clientSocket):
+def sendMessage(packet, clientSocket):
     """
     Sends a message to a specified address
     :param packet: The message sent in Packet object form
@@ -34,14 +34,14 @@ def sendMessage(packet: list, clientSocket):
     """
     clientSocket.sendall(pickle.dumps(packet))
 
-def receiveMessage(clientSocket) -> list:
+def receiveMessage(clientSocket):
     """
-    :return: A list containing the packet objects sent by the client. If no message is received then returns [] and closes the client socket
+    :return: The packet object sent by the client. If no message is received then returns None and closes the client socket
     """
     data = clientSocket.recv(dataSize)
     if not data:
         clientSocket.close()
-        return []
+        return None
     return pickle.loads(data)
 
 def getAllPrivateGamesAsSimplifiedGames() -> list:
@@ -119,7 +119,7 @@ def joinRandomGame(player):
         randomGames.append(newRandomGame)
         newRandomGame.addNewPlayer(player)
 
-        message = [Packet("joinedRandomGame", gameID)]
+        message = Packet("joinedRandomGame", gameID)
     else:
         mostRecentlyCreatedGame.addNewPlayer(player)
         message = [Packet("joinedRandomGame", mostRecentlyCreatedGame.getID())]
@@ -128,9 +128,12 @@ def joinRandomGame(player):
 def joinPrivateGame(player, gameID):
     global privateGames
     if gameID not in privateGames.keys():
-        message = [Packet("failedToJoinPrivateGame", "Private game not found.")]
+        message = Packet("failedToJoinPrivateGame", "Private game not found.")
     elif privateGames[gameID].getPlayersJoined() == 4:
-        message = [Packet("failedToJoinPrivateGame", "Private game full.")]
+        message = Packet("failedToJoinPrivateGame", "Private game full.")
+    else:
+        message = Packet("joinedPrivateGame", gameID)
+    sendMessage(message, player.getSocket())
 
 def createPrivateGame(player, gameName):
     gameID = getNewGameID() #generate a new gameID
@@ -139,7 +142,7 @@ def createPrivateGame(player, gameName):
     privateGame.addNewPlayer(player)
     privateGame.setName(gameName)
 
-    message = [Packet("createdNewPrivateGame", gameName)]
+    message = Packet("createdNewPrivateGame", gameName)
     sendMessage(message, player)
 
     clientSocket = player.getSocket()
@@ -151,12 +154,11 @@ def createPrivateGame(player, gameName):
             numPlayers = 0
             if not numPlayers == privateGame.getPlayersJoined():
                 numPlayers = privateGame.getPlayersJoined()
-                message = [Packet("setTotalPlayers", numPlayers)]
+                message = Packet("setTotalPlayers", numPlayers)
                 sendMessage(message, clientSocket)
-                packets = receiveMessage(clientSocket)
-                for packet in packets:
-                    if not packet.getAction() == "gotTotalPlayers" or not packet.getValue() == numPlayers:
-                        wrongPacketMessageReceived(player)
+                packet = receiveMessage(clientSocket)
+                if not packet.getAction() == "gotTotalPlayers" or not packet.getValue() == numPlayers:
+                    wrongPacketMessageReceived(player)
 
     startPrivateGame(gameID)
 
@@ -168,24 +170,23 @@ def privateLobbyWaiting(player):
     clientSocket = player.getSocket()
     run = True
     while run:
-        packets = receiveMessage(clientSocket)
-        for packet in packets:
-            action = packet.getAction()
-            if action == "getPrivateGames":
-                listOfGames = getAllPrivateGamesAsSimplifiedGames()
-                message = [Packet("returnPrivateGames", listOfGames)]
-                sendMessage(message, clientSocket)
-            else:
-                run = False
-                exit_thread()
-                if action == "joinRandomGame":
-                    start_new_thread(joinRandomGame, (player,))
-                elif action == "setPrivateGameName":
-                    gameName = packet.getValue()
-                    start_new_thread(createPrivateGame, (player, gameName))
-                elif action == "joinPrivateGame":
-                    gameID = packet.getValue()
-                    start_new_thread(joinPrivateGame, (player, gameID))
+        packet = receiveMessage(clientSocket)
+        action = packet.getAction()
+        if action == "getPrivateGames":
+            listOfGames = getAllPrivateGamesAsSimplifiedGames()
+            message = Packet("returnPrivateGames", listOfGames)
+            sendMessage(message, clientSocket)
+        else:
+            run = False
+            exit_thread()
+            if action == "joinRandomGame":
+                start_new_thread(joinRandomGame, (player,))
+            elif action == "setPrivateGameName":
+                gameName = packet.getValue()
+                start_new_thread(createPrivateGame, (player, gameName))
+            elif action == "joinPrivateGame":
+                gameID = packet.getValue()
+                start_new_thread(joinPrivateGame, (player, gameID))
 
 
 def main():
@@ -197,39 +198,36 @@ def main():
         player = Player()
         player.setSocket(clientSocket)
         print("Connected to:", clientAddress)
-        message = [Packet("setDataSize", dataSize)]
+        message = Packet("setDataSize", dataSize)
         sendMessage(message, clientSocket)
-        packets = receiveMessage(clientSocket)
-        for packet in packets:
-            if not packet.getAction() == "gotDataSize" or not packet.getValue() == dataSize:
-                clientSocket.close()
+        packet = receiveMessage(clientSocket)
+        if not packet.getAction() == "gotDataSize" or not packet.getValue() == dataSize:
+            clientSocket.close()
 
         #Client first sends their name
-        packets = receiveMessage(clientSocket)
-        for packet in packets:
-            if packet.getAction() == "setPlayerName":
-                player.setName(packet.getValue())
-                message = [Packet("gotPlayerName", packet.getValue())]
-                sendMessage(message, clientSocket)
+        packet = receiveMessage(clientSocket)
+        if packet.getAction() == "setPlayerName":
+            player.setName(packet.getValue())
+            message = Packet("gotPlayerName", packet.getValue())
+            sendMessage(message, clientSocket)
 
         #Client then sends if they are getting private privateGames, joining a random game, or creating a new private game
-        packets = receiveMessage(clientSocket)
-        for packet in packets:
-            if packet.getAction() == "getPrivateGames":
-                listOfGames = getAllPrivateGamesAsSimplifiedGames()
-                message = [Packet("returnPrivateGames", listOfGames)]
-                sendMessage(message, clientSocket)
-                start_new_thread(privateLobbyWaiting, (player,))
+        packet = receiveMessage(clientSocket)
+        if packet.getAction() == "getPrivateGames":
+            listOfGames = getAllPrivateGamesAsSimplifiedGames()
+            message = Packet("returnPrivateGames", listOfGames)
+            sendMessage(message, clientSocket)
+            start_new_thread(privateLobbyWaiting, (player,))
 
-            elif packet.getAction() == "joinRandomGame":
-                start_new_thread(joinRandomGame, (player,))
+        elif packet.getAction() == "joinRandomGame":
+            start_new_thread(joinRandomGame, (player,))
 
-            elif packet.getAction() == "setPrivateGameName":
-                gameName = packet.getValue()
-                message = [Packet("createNewPrivateGame", gameName)]
-                sendMessage(message, clientSocket)
-                start_new_thread(joinPrivateGame, (player, gameName))
-            #can't join the private games if the client hasn't received the games yet
+        elif packet.getAction() == "setPrivateGameName":
+            gameName = packet.getValue()
+            message = Packet("createNewPrivateGame", gameName)
+            sendMessage(message, clientSocket)
+            start_new_thread(joinPrivateGame, (player, gameName))
+        #can't join the private games if the client hasn't received the games yet
 
 #running server
 main()
