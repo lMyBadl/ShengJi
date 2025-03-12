@@ -138,19 +138,23 @@ def dealCards(game):
 
             time.sleep(250)
 
-def startPrivateGame(gameID: int):
+def startPrivateGame(player, gameID: int):
     """
     Starts a game with the specified gameID
     """
     global privateGames
     game = privateGames[gameID]
 
-def startRandomGame(gameIndex: int):
+def startRandomGame(player, gameIndex: int):
     """
     Starts a game with the specified index
     """
     global randomGames
     game = randomGames[gameIndex]
+    #deal the cards
+    if game.getPlayerIndex(player) == 0:
+        start_new_thread(dealCards, (game,))
+
 
 def gameCleaner():
     while True:
@@ -193,26 +197,37 @@ def joinRandomGame(player):
     if not packet.getAction() == "readyToPlay":
         wrongPacketMessageReceived(player)
 
-    startRandomGame(gameIndex)
+    startRandomGame(player, gameIndex)
 
 def joinPrivateGame(player, gameID: int):
     global privateGames
+    clientSocket = player.getSocket()
     if gameID not in privateGames.keys():
         message = Packet("failedToJoinPrivateGame", "Private game not found.")
     elif privateGames[gameID].getPlayersJoined() == 4:
         message = Packet("failedToJoinPrivateGame", "Private game full.")
     else:
         message = Packet("joinedPrivateGame", gameID)
-    sendMessage(message, player.getSocket())
+    sendMessage(message, clientSocket)
 
     game = privateGames[gameID]
-    while True:
+    while not game.getPlayersJoined() == 4:
+        continue
+
+    message = Packet("startingGame", "")
+    sendMessage(message, clientSocket)
+    packet = receiveMessage(clientSocket)
+    if not packet.getAction() == "readyToPlay":
+        wrongPacketMessageReceived(player)
+
+    startPrivateGame(player, gameID)
+    """while True:
         if game.allReady():
             startPrivateGame(gameID)
             return
         else:
             #can add implementation of showing other player's ready state later
-            continue
+            continue"""
 
 def createPrivateGame(player, gameName):
     gameID = getNewGameID() #generate a new gameID
@@ -240,7 +255,7 @@ def createPrivateGame(player, gameName):
                 if not packet.getAction() == "gotTotalPlayers" or not packet.getValue() == numPlayers:
                     wrongPacketMessageReceived(player)
 
-    startPrivateGame(gameID)
+    startPrivateGame(player, gameID)
 
 def privateLobbyWaiting(player):
     """
