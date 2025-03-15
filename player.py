@@ -1,16 +1,18 @@
+import socket
+
+
 class Player:
     """
-    A player class with its socket and address stored as well for easy accessing
+    A player class with its playerSocket and address stored as well for easy accessing
     """
     def __init__(self):
+        """
+        Initializes a player object with an empty hand, playerNumber, playerSocket, and name
+        """
         self.hand = []
         self.playerNumber = None #We don't store either of these b/c I use them as a placeholder when creating the game
-        self.socket = None #I set these later when the player actually joins a certain game
+        self.playerSocket = None #I set these later when the player actually joins a certain game
         self.name = None
-
-
-    def __len__(self):
-        return self.hand.__len__()
 
     def __str__(self):
         output = ""
@@ -36,23 +38,26 @@ class Player:
     def getID(self) -> int:
         return self.playerNumber
 
-    def setSocket(self, socket):
+    def setSocket(self, playerSocket: socket):
         """
-        :param socket: socket object
+        :param playerSocket: Socket object
         """
-        self.socket = socket
+        self.playerSocket = playerSocket
 
-    def getSocket(self):
+    def getSocket(self) -> socket:
         """
-        :return: socket object
+        :return: Socket object
         """
-        return self.socket
+        return self.playerSocket
 
-    def setId(self, playerId: int):
+    def setId(self, playerId: int) -> None:
         self.playerNumber = playerId
 
     def getName(self) -> str:
         return self.name
 
-    def setName(self, name: str):
+    def setName(self, name: str) -> None:
         self.name = name
+
+    def getHandSize(self) -> int:
+        return len(self.hand)

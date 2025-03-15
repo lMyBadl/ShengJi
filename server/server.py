@@ -22,7 +22,7 @@ host = 'localhost'
 # Define the port (ensure this port is open on your AWS instance)
 port = 12345
 
-# Create a TCP/IP socket
+# Create a TCP/IP playerSocket
 serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 serverSocket.bind((host, port))
 
@@ -37,7 +37,7 @@ def sendMessage(packet: Packet, clientSocket: socket):
 
 def receiveMessage(clientSocket: socket):
     """
-    :return: The packet object sent by the client. If no message is received then returns None and closes the client socket
+    :return: The packet object sent by the client. If no message is received then returns None and closes the client playerSocket
     """
     global numClients
     data = clientSocket.recv(dataSize)
