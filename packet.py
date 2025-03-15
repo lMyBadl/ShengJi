@@ -16,6 +16,9 @@ class Packet:
         joinPrivateGame (gameID)        -> if joined: joinedPrivateGame (gameID) else: failedToJoinPrivateGame (reason)
         joinRandomGame ("")             -> joinedRandomGame (gameID)
         
+            During game:
+        setTrumpSuit ([value, suit])    -> changedTrumpSuit (suit) or if not valid invalidCard ("")
+        
         Server Actions:
         what server sends               -> what client sends back
         

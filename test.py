@@ -1,10 +1,10 @@
 from packet import Packet
-packet = Packet("hi", 3)
-dic = {1:packet, 3:5, "hola":[0,1,2,3]}
-print(dic)
-packet.action = "bruh"
-print(dic[3])
-ar = [packet, 0, 3, 6]
-print(ar)
-del(ar[ar.index(packet)])
-print(ar)
+from shengJi import ShengJi
+game = ShengJi(1)
+game.setTrumpSuit("hearts")
+deck = game.deck
+print(deck)
+print(game.deck)
+deck.shuffleDeck()
+print(deck)
+print(game.deck)

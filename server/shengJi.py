@@ -33,6 +33,7 @@ class ShengJi:
         self.deck.makeDeck(self.level)
 
     def setTrumpSuit(self, trumpSuit: str):
+        self.trumpSuit = trumpSuit
         self.deck.setTrumpSuit(trumpSuit)
 
     def setTrickStarter(self, player: int):
@@ -99,9 +100,6 @@ class ShengJi:
     def allPlayed(self) -> bool:
         return self.playersWent[0] and self.playersWent[1] and self.playersWent[2] and self.playersWent[3]
 
-    def setTrumpSuit(self, suit: str):
-        self.trumpSuit = suit
-
     def getTrumpSuit(self) -> str:
         return self.trumpSuit
 
@@ -160,7 +158,7 @@ class ShengJi:
     def getID(self):
         return self.gameID
 
-    def getPlayersJoined(self):
+    def getNumPlayersJoined(self):
         count = 0
         for player in self.players:
             if player.getName(): #if player has a name
@@ -172,4 +170,6 @@ class ShengJi:
     
     def getPlayers(self):
         return self.players
-    
+
+    def getLevel(self) -> int:
+        return self.level

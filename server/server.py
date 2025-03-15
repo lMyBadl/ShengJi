@@ -49,7 +49,7 @@ def receiveMessage(clientSocket):
 def getAllPrivateGamesAsSimplifiedGames() -> list:
     listOfGames = []
     for privateGame in privateGames.values():
-        simplifiedGame = SimpleGame(privateGame.getName(), privateGame.getPlayersJoined(), privateGame.getID())
+        simplifiedGame = SimpleGame(privateGame.getName(), privateGame.getNumPlayersJoined(), privateGame.getID())
         listOfGames.append(simplifiedGame)
     return listOfGames
 
@@ -92,7 +92,7 @@ def cleanPrivateGames():
     global privateGames
     for game in privateGames.values():
         gameID = game.getID()
-        if game.getPlayersJoined() == 0:
+        if game.getNumPlayersJoined() == 0:
             removePrivateGame(gameID)
 
 def cleanRandomGames():
@@ -101,7 +101,7 @@ def cleanRandomGames():
     """
     global randomGames
     for game in randomGames:
-        if game.getPlayersJoined() == 0:
+        if game.getNumPlayersJoined() == 0:
             removeRandomGame(game)
 
 def removeRandomGame(game):
@@ -122,11 +122,13 @@ def wrongPacketMessageReceived(player):
 def dealCards(game):
     """
     Deals the cards slowly to the players
+    :returns: The eight cards left at the bottom of the deck
     """
     players = game.getPlayers()
     game.makeDeck() #2 decks with jokers, 108 cards
     deck = game.getDeck()
-    while deck:
+    #leaves the bottom 8 cards
+    for _ in range(25):
         for player in players:
             card = deck.drawCard()
             player.addCardToHand(card)
@@ -136,7 +138,43 @@ def dealCards(game):
             if not packet.getAction() == card and not packet.getValue() == "addedCardToHand":
                 wrongPacketMessageReceived(player)
 
-            time.sleep(250)
+            time.sleep(0.25)
+
+    return deck
+
+def setTrumpSuitDuringDealing(player, game):
+    clientSocket = player.getSocket()
+    players = game.getPlayers()
+    level = game.getLevel()
+    trumpSuit = game.getTrumpSuit()
+    #checking for initial setting
+    while trumpSuit is None:
+        packet = receiveMessage(clientSocket)
+        if packet.getAction() == "setTrumpSuit":
+            value, suit = packet.getValue()
+            if value == level:
+                trumpSuit = suit
+                game.setTrumpSuit(trumpSuit)
+                for player in players:
+                    connection = player.getSocket()
+                    message = Packet("changedTrumpSuit", packet.getValue())
+            else:
+                message = Packet("invalidCard", "")
+                sendMessage(message, clientSocket)
+
+def gameLoopForEachClient(player, game):
+    """
+    The general game loop
+    :param player: The player object of the client
+    :param game: The game object the client is connected to
+    """
+    #deal the cards
+    if game.getPlayerIndex(player) == 0:
+        start_new_thread(dealCards, (game,))
+    #does this have to be a threaded method?
+    start_new_thread(setTrumpSuitDuringDealing, (player, game)):
+
+
 
 def startPrivateGame(player, gameID: int):
     """
@@ -144,6 +182,7 @@ def startPrivateGame(player, gameID: int):
     """
     global privateGames
     game = privateGames[gameID]
+    gameLoopForEachClient(player, game)
 
 def startRandomGame(player, gameIndex: int):
     """
@@ -151,10 +190,7 @@ def startRandomGame(player, gameIndex: int):
     """
     global randomGames
     game = randomGames[gameIndex]
-    #deal the cards
-    if game.getPlayerIndex(player) == 0:
-        start_new_thread(dealCards, (game,))
-
+    gameLoopForEachClient(player, game)
 
 def gameCleaner():
     while True:
@@ -171,7 +207,7 @@ def joinRandomGame(player):
     clientSocket = player.getSocket()
     mostRecentlyCreatedGame = randomGames[-1]
     gameIndex = randomGames.index(mostRecentlyCreatedGame)
-    if mostRecentlyCreatedGame.getPlayersJoined() == 4: #game is full
+    if mostRecentlyCreatedGame.getNumPlayersJoined() == 4: #game is full
         gameID = getNewGameID()
         newRandomGame = ShengJi(gameID)
         randomGames.append(newRandomGame)
@@ -182,8 +218,8 @@ def joinRandomGame(player):
         message = Packet("joinedRandomGame", mostRecentlyCreatedGame.getID())
     sendMessage(message, clientSocket)
 
-    while not mostRecentlyCreatedGame.getPlayersJoined() == 4:
-        numPlayers = mostRecentlyCreatedGame.getPlayersJoined()
+    while not mostRecentlyCreatedGame.getNumPlayersJoined() == 4:
+        numPlayers = mostRecentlyCreatedGame.getNumPlayersJoined()
         message = Packet("numberOfPlayersInGame", numPlayers)
         sendMessage(message, clientSocket)
 
@@ -204,14 +240,14 @@ def joinPrivateGame(player, gameID: int):
     clientSocket = player.getSocket()
     if gameID not in privateGames.keys():
         message = Packet("failedToJoinPrivateGame", "Private game not found.")
-    elif privateGames[gameID].getPlayersJoined() == 4:
+    elif privateGames[gameID].getNumPlayersJoined() == 4:
         message = Packet("failedToJoinPrivateGame", "Private game full.")
     else:
         message = Packet("joinedPrivateGame", gameID)
     sendMessage(message, clientSocket)
 
     game = privateGames[gameID]
-    while not game.getPlayersJoined() == 4:
+    while not game.getNumPlayersJoined() == 4:
         continue
 
     message = Packet("startingGame", "")
@@ -247,8 +283,8 @@ def createPrivateGame(player, gameName):
         else:
             numPlayers = 0
             #sends an update when the number of players in the game changes
-            if not numPlayers == privateGame.getPlayersJoined():
-                numPlayers = privateGame.getPlayersJoined()
+            if not numPlayers == privateGame.getNumPlayersJoined():
+                numPlayers = privateGame.getNumPlayersJoined()
                 message = Packet("setTotalPlayers", numPlayers)
                 sendMessage(message, clientSocket)
                 packet = receiveMessage(clientSocket)
