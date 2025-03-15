@@ -9,17 +9,20 @@ class ShengJi:
         self.trumpSuit = None
 
         self.gameID = gameId
-        self.ready = False
+        self.ready = [False, False, False, False]
         self.players = [Player(), Player(), Player(), Player()]
         self.playersWent = [False, False, False, False]
 
         self.level = 2
         self.deck = Deck(True, 2)
+        self.deck.makeDeck(self.level)
         self.deck.setTrumpValue(self.level)
         self.playerPoints = [0, 0, 0, 0]
 
         self.moves = [[], [], [], []]
         self.trickStarter = 0
+        self.attackingTeam = 0
+        self.colorOfTrumpSuitIfJoker = None
 
     def playCard(self, player: int, move: list):
         """
@@ -36,8 +39,11 @@ class ShengJi:
         self.trumpSuit = trumpSuit
         self.deck.setTrumpSuit(trumpSuit)
 
-    def setTrickStarter(self, player: int):
-        self.trickStarter = player
+    def setTrickStarter(self, playerIndex: int):
+        self.trickStarter = self.getPlayerIndex(playerIndex)
+
+    def getTrickStarter(self) -> int:
+        return self.trickStarter
 
     def levelUp(self):
         self.level += 1
@@ -106,11 +112,12 @@ class ShengJi:
     def setLevel(self, level: int):
         self.level = level
 
-    def setReady(self, ready: bool):
-        self.ready = ready
+    def setPlayerReady(self, player, ready: bool):
+        playerIndex = self.getPlayerIndex(player)
+        self.ready[playerIndex] = ready
 
     def allReady(self) -> bool:
-        return self.ready
+        return self.ready[0] and self.ready[1] and self.ready[2] and self.ready[3]
 
     def getPlayerFromId(self, playerId: int):
         for player in self.players:
@@ -173,3 +180,31 @@ class ShengJi:
 
     def getLevel(self) -> int:
         return self.level
+
+    def changeAttackingTeam(self):
+        if self.attackingTeam == 0:
+            self.attackingTeam = 1
+        else:
+            self.attackingTeam = 0
+
+    def getAttackingTeam(self) -> int:
+        """
+        :return: Team 0 (player0 & player 2), or team 1 (player1 & player 3)
+        """
+        return self.attackingTeam
+
+    def setAttackingTeam(self, player):
+        """
+        :param player: The player that set the trump suit in dealing
+        """
+        playerIndex = self.getPlayerIndex(player)
+        if playerIndex == 0 or 2:
+            self.attackingTeam = 0
+        else:
+            self.attackingTeam = 1
+
+    def setColorOfTrumpSuitIfJoker(self, color:str):
+        self.colorOfTrumpSuitIfJoker = color
+
+    def getColorOfTrumpSuitIfJoker(self) -> str:
+        return self.colorOfTrumpSuitIfJoker

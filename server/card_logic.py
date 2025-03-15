@@ -6,13 +6,13 @@ validSuits = {"hearts", "diamonds", "spades", "clubs"}
 
 
 class Card:
-    def __init__(self, value, suit: str, trumpValue: int, trumpSuit: str, pos = (0, 0)):
+    def __init__(self, value, suit: str, trumpValue: int, trumpSuit: str):
         if self.isValid(value, suit):
             self.value = value
             self.suit = suit
             self.trumpValue = trumpValue
             self.trumpSuit = trumpSuit
-            self.pos = pos
+            #self.pos = pos
             self.mainSuit = None
             """
             if suit == "clubs": s = "Clubs"
@@ -88,7 +88,7 @@ class Card:
         if suit == "joker" and value in ["red", "black"]:
             return True
         return value in validValues and suit in validSuits
-
+    """
     def getPos(self) -> tuple:
         return self.pos
 
@@ -96,7 +96,7 @@ class Card:
         self.pos = pos
 
     def getSize(self) -> tuple:
-        return self.size
+        return self.size"""
 
     def getSuit(self) -> str:
         return self.suit
@@ -107,9 +107,9 @@ class Card:
     def setMainSuit(self, suit: str) -> None:
         self.mainSuit = suit
 
-    def isColliding(self, pos: tuple) -> bool:
+    """def isColliding(self, pos: tuple) -> bool:
         return self.pos[0] <= pos[0] <= self.pos[0] + self.getSize()[0] and self.pos[1] <= pos[1] <= self.pos[1] + self.getSize()[1]
-
+    """
     def setTrumpSuit(self, trumpSuit: str):
         self.trumpSuit = trumpSuit
 
@@ -123,7 +123,6 @@ class Deck:
         self.trumpSuit = None
         self.trumpValue = None
         self.deck = None
-        self.makeDeck(0)
 
     def __str__(self):
         output = ""

@@ -1,5 +1,5 @@
 class Packet:
-    def __init__(self, action: str, value):
+    def __init__(self, action: str, value = ""):
         """
         Encases an action-value pair as an object
         """
@@ -13,11 +13,16 @@ class Packet:
             Waiting in menu screen:
         setPrivateGameName (gameName)   -> createdNewPrivateGame (gameName)
         getPrivateGames ("")            -> returnPrivateGames (list of simplified private games)
-        joinPrivateGame (gameID)        -> if joined: joinedPrivateGame (gameID) else: failedToJoinPrivateGame (reason)
+        joinPrivateGame (gameID)        -> if joined: joinedPrivateGame (gameID) 
+                                            else: failedToJoinPrivateGame (reason)
         joinRandomGame ("")             -> joinedRandomGame (gameID)
         
             During game:
-        setTrumpSuit ([value, suit])    -> changedTrumpSuit (suit) or if not valid invalidCard ("")
+        setTrumpSuit ([value, suit])    -> changedTrumpSuit (suit)
+                                            reinforcedTrumpSuit (suit)
+                                            changedToReinforcedTrumpSuit ([value, suit])
+                                            or if not valid invalidCard ("")
+        readyToPlay ("")                -> gotReadyToPlay ("")
         
         Server Actions:
         what server sends               -> what client sends back
