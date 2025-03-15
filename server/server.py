@@ -155,7 +155,6 @@ def gameLoopForEachClient(player: Player, game: ShengJi):
     :param game: The game object the client is connected to
     """
     clientSocket = player.getSocket()
-    players = game.getPlayers()
     playerIndex = game.getPlayerIndex(player)
     level = game.getLevel()
     trumpSuit = game.getTrumpSuit()
@@ -169,7 +168,7 @@ def gameLoopForEachClient(player: Player, game: ShengJi):
             if value == level:
                 trumpSuit = suit
                 game.setTrumpSuit(trumpSuit)
-                game.setTrickStarter(player)
+                game.setTrickStarter(playerIndex)
                 message = Packet("changedTrumpSuit", packet.getValue())
                 sendMessageToAllInGame(game, message)
             else:
