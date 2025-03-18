@@ -6,6 +6,9 @@ validSuits = {"hearts", "diamonds", "spades", "clubs"}
 
 
 class Card:
+    """
+    Creates a card object that stores its value and suit
+    """
     def __init__(self, value, suit: str, trumpValue: int, trumpSuit: str):
         if self.isValid(value, suit):
             self.value = value
@@ -84,6 +87,12 @@ class Card:
 
     @staticmethod
     def isValid(value, suit: str) -> bool:
+        """
+        Checks if a card is valid with the given inputs
+        :param value: Value of the card
+        :param suit: Suit of the card
+        :return: True if valid, false if not
+        """
         global validValues, validSuits
         if suit == "joker" and value in ["red", "black"]:
             return True
@@ -99,24 +108,43 @@ class Card:
         return self.size"""
 
     def getSuit(self) -> str:
+        """
+        :return: The suit of the card
+        """
         return self.suit
 
     def getValue(self):
+        """
+        :return: The value of the card
+        """
         return self.value
 
     def setMainSuit(self, suit: str) -> None:
+        """
+        Sets the main suit of the trick for the comparison method (__gt__)
+        :param suit: The main suit
+        """
         self.mainSuit = suit
 
     """def isColliding(self, pos: tuple) -> bool:
         return self.pos[0] <= pos[0] <= self.pos[0] + self.getSize()[0] and self.pos[1] <= pos[1] <= self.pos[1] + self.getSize()[1]
     """
-    def setTrumpSuit(self, trumpSuit: str):
+    def setTrumpSuit(self, trumpSuit: str) -> None:
+        """
+        Sets the trump suit of the card for the comparison method (__gt__)
+        """
         self.trumpSuit = trumpSuit
 
     def setTrumpValue(self, trumpValue: int):
+        """
+        Sets the trump value of the card for the comparison method (__gt__)
+        """
         self.trumpValue = trumpValue
 
 class Deck:
+    """
+    Creates a deck with the cards being Card objects
+    """
     def __init__(self, wantsJokers: bool, numDecks = 1):
         self.wantsJokers = wantsJokers
         self.numDecks = numDecks
@@ -131,6 +159,10 @@ class Deck:
         return output
 
     def makeDeck(self, trumpValue: int) -> None:
+        """
+        Creates the actual deck
+        :param trumpValue: The trump value of the deck
+        """
         global validSuits, validValues
         self.trumpValue = trumpValue
         self.trumpSuit = trumpSuit = "joker"
@@ -142,29 +174,51 @@ class Deck:
         for i in range(self.numDecks - 1):
             self.deck.extend(copy)
 
-    def getCard(self, index: int):
+    def getCard(self, index: int) -> Card:
+        """
+        Returns the card at the specified index
+        """
         return self.deck[index]
 
     def removeCard(self, value, suit: str) -> None:
+        """
+        Removes a card with the specified value and suit pair
+        """
         card = Card(value, suit, self.trumpValue, self.trumpSuit)
         self.deck.remove(card)
     
-    def drawCard(self):
+    def drawCard(self) -> Card:
+        """
+        Draws a card from the deck and removes that card from the deck
+        :return: The card drawn
+        """
         return self.deck.pop()
     
     def shuffleDeck(self) -> None:
+        """
+        Shuffles the deck=
+        """
         random.shuffle(self.deck)
     
     def setTrumpSuit(self, trumpSuit: str) -> None:
+        """
+        Sets the trump suit for the entire deck
+        """
         self.trumpSuit = trumpSuit
         for card in self.deck:
             card.setTrumpSuit(trumpSuit)
 
     def setTrumpValue(self, trumpValue: int) -> None:
+        """
+        Sets the trump value for the entire deck
+        """
         self.trumpValue = trumpValue
         for card in self.deck:
             card.setTrumpValue(trumpValue)
 
     def setTrump(self, trumpValue: int, trumpSuit: str) -> None:
+        """
+        Sets both the trump suit and trump value for the entire deck
+        """
         self.setTrumpSuit(trumpSuit)
         self.setTrumpValue(trumpValue)

@@ -42,16 +42,15 @@ font = pygame.font.SysFont("Arial", 16, bold=True)
 opponentCardCounts = {}
 
 clock = pygame.time.Clock()
-def sendMessage(packet):
+def sendMessage(packet: Packet) -> None:
     """
     :param packet: A packet object to send
     """
     player.getSocket().sendall(pickle.dumps(packet))
 
-def receiveMessage():
+def receiveMessage() -> Packet | None:
     """
     Receives a message from the server. If nothing is received, calls the method serverClosed().
-    :return: A packet object
     """
     data = player.getSocket().recv(dataSize)
     if not data:
@@ -59,10 +58,17 @@ def receiveMessage():
         return None
     return pickle.loads(data)
 
-def serverClosed():
+def serverClosed() -> None:
+    """
+    Quits the client if the server is closed
+    """
     pygame.quit()
 
-def loadScreen(screenName: str):
+def loadScreen(screenName: str) -> None:
+    """
+    Loads the client screen method based on the name of the screen name passed
+    :param screenName: The screen name of the button that the client clicked
+    """
     if screenName == "Join Random Game":
         joinRandomGame()
     elif screenName == "Load Private Game Lobby":
@@ -70,7 +76,10 @@ def loadScreen(screenName: str):
     elif screenName == "Create Private Game":
         createPrivateGame()
 
-def joinRandomGame():
+def joinRandomGame() -> None:
+    """
+    Opens the join random game screen
+    """
     joinMessage = Packet("joinRandom", None)
     try:
         None
@@ -79,6 +88,9 @@ def joinRandomGame():
 
 
 def createPrivateGame():
+    """
+    Opens the private game customizer
+    """
     inputFont = pygame.font.SysFont("Arial", 20)
     privateUIFont = pygame.font.SysFont("Arial", 40, bold=True)
 
@@ -150,7 +162,7 @@ def createPrivateGame():
 
 def privateGameLobby():
     """
-    displays the UI for the list of private games available
+    Displays the screen for the list of private games available
     """
     #reload button so that the server doesn't constantly send data
     #layout:
@@ -220,7 +232,7 @@ def privateGameLobby():
                             getPrivateGames = Packet("getPrivateGames", 0)
                             sendMessage(getPrivateGames)
                             # Should immediately get back private games
-                            packet = receiveMessage
+                            packet = receiveMessage()
                             privateGames = packets[0].az;;::
                             numGames = len(privateGames)
 
@@ -243,9 +255,8 @@ def privateGameLobby():
 
 def inputNameScreen(screenAfter: str):
     """
-    displays a screen for the user to input their name
-    :param screenAfter: the screen that the user selected before entering this UI
-    :return:
+    Displays a screen for the user to input their name
+    :param screenAfter: The screen that the user selected before entering this UI
     """
     global dataSize
     instructionText = "Enter name below:"
@@ -320,6 +331,9 @@ def inputNameScreen(screenAfter: str):
         print(e)
 
 def menuScreen():
+    """
+    The main screen of the client when starting the application
+    """
     run = True
     while run:
         clock.tick(60)

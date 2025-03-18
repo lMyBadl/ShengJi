@@ -24,18 +24,19 @@ class ShengJi:
         self.attackingTeam = 0
         self.colorOfTrumpSuitIfJoker = None
 
-    def playCard(self, player: int, move: list):
+    def playCard(self, player: int, move: list) -> None:
         """
+
         :param player: [0, 1, 2, 3]
         :param move: The Player's move from an array of Card objects
         """
         self.moves[player] = move
         self.playersWent[player] = True
-        
-    def makeDeck(self):
-        self.deck.makeDeck(self.level)
 
-    def setTrumpSuit(self, trumpSuit: str):
+    def setTrumpSuit(self, trumpSuit: str) -> None:
+        """
+        Sets the trump suit for the deck in the game
+        """
         self.trumpSuit = trumpSuit
         self.deck.setTrumpSuit(trumpSuit)
 
@@ -181,7 +182,7 @@ class ShengJi:
     def getLevel(self) -> int:
         return self.level
 
-    def changeAttackingTeam(self):
+    def changeAttackingTeam(self) -> None:
         if self.attackingTeam == 0:
             self.attackingTeam = 1
         else:
