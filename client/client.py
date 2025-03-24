@@ -56,6 +56,7 @@ def receiveMessage() -> Packet | None:
     if not data:
         serverClosed()
         return None
+    print(f"Received {pickle.loads(data)} from server")
     return pickle.loads(data)
 
 def serverClosed() -> None:

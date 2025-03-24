@@ -27,7 +27,7 @@ serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 serverSocket.bind((host, port))
 
 #Non client-handling methods
-def sendMessage(packet: Packet, clientSocket: socket):
+def sendMessage(packet: Packet, clientSocket: socket) -> None:
     """
     Sends a message to a specified address
     :param packet: The message sent in Packet object form
@@ -35,7 +35,7 @@ def sendMessage(packet: Packet, clientSocket: socket):
     """
     clientSocket.sendall(pickle.dumps(packet))
 
-def receiveMessage(clientSocket: socket):
+def receiveMessage(clientSocket: socket) -> Packet | None:
     """
     :return: The packet object sent by the client. If no message is received then returns None and closes the client playerSocket
     """
@@ -45,6 +45,7 @@ def receiveMessage(clientSocket: socket):
         numClients -= 1
         clientSocket.close()
         return None
+    print(f"Received {pickle.loads(data)} from {clientSocket}")
     return pickle.loads(data)
 
 def sendMessageToAllInGame(game: ShengJi, message: Packet):
@@ -124,6 +125,7 @@ def wrongPacketMessageReceived(player: Player):
     global numClients
     numClients -= 1
     player.getSocket().close()
+    player.setName(None)
 
 def dealCards(game: ShengJi):
     """
@@ -370,15 +372,14 @@ def privateLobbyWaiting(player: Player):
             sendMessage(message, clientSocket)
         else:
             run = False
-            exit_thread()
             if action == "joinRandomGame":
-                start_new_thread(joinRandomGame, (player,))
+                joinRandomGame(player)
             elif action == "setPrivateGameName":
                 gameName = packet.getValue()
-                start_new_thread(createPrivateGame, (player, gameName))
+                createPrivateGame(player, gameName)
             elif action == "joinPrivateGame":
                 gameID = packet.getValue()
-                start_new_thread(joinPrivateGame, (player, gameID))
+                joinPrivateGame(player, gameID)
 
 
 def main():
