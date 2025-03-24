@@ -264,6 +264,20 @@ def gameCleaner():
         else:
             time.sleep(3600)
 
+def updatePlayerCountLoop(player: Player, game: ShengJi):
+    clientSocket = player.getSocket()
+    while not game.allReady():
+        numPlayers = 0
+        # sends an update when the number of players in the game changes
+        if not numPlayers == game.getNumPlayersJoined():
+            numPlayers = game.getNumPlayersJoined()
+            message = Packet("setTotalPlayers", numPlayers)
+            sendMessage(message, clientSocket)
+            packet = receiveMessage(clientSocket)
+            if not packet.getAction() == "gotTotalPlayers" or not packet.getValue() == numPlayers:
+                wrongPacketMessageReceived(player)
+
+
 #threaded client handling methods
 def joinRandomGame(player: Player):
     global randomGames
@@ -272,23 +286,18 @@ def joinRandomGame(player: Player):
     gameIndex = randomGames.index(mostRecentlyCreatedGame)
     if mostRecentlyCreatedGame.getNumPlayersJoined() == 4: #game is full
         gameID = getNewGameID()
-        newRandomGame = ShengJi(gameID)
-        randomGames.append(newRandomGame)
-        newRandomGame.addNewPlayer(player)
+        mostRecentlyCreatedGame = ShengJi(gameID)
+        randomGames.append(mostRecentlyCreatedGame)
+        mostRecentlyCreatedGame.addNewPlayer(player)
+        player.setGame(mostRecentlyCreatedGame)
         message = Packet("joinedRandomGame", gameID)
     else: #game isn't full
         mostRecentlyCreatedGame.addNewPlayer(player)
+        player.setGame(mostRecentlyCreatedGame)
         message = Packet("joinedRandomGame", mostRecentlyCreatedGame.getID())
     sendMessage(message, clientSocket)
 
-    while not mostRecentlyCreatedGame.getNumPlayersJoined() == 4:
-        numPlayers = mostRecentlyCreatedGame.getNumPlayersJoined()
-        message = Packet("numberOfPlayersInGame", numPlayers)
-        sendMessage(message, clientSocket)
-
-        packet = receiveMessage(clientSocket)
-        if not packet.getAction() == "gotTotalPlayers" and not packet.getValue() == numPlayers:
-            wrongPacketMessageReceived(player)
+    updatePlayerCountLoop(player, mostRecentlyCreatedGame)
 
     message = Packet("startingGame")
     sendMessage(message, clientSocket)
@@ -310,8 +319,7 @@ def joinPrivateGame(player: Player, gameID: int):
     sendMessage(message, clientSocket)
 
     game = privateGames[gameID]
-    while not game.getNumPlayersJoined() == 4:
-        continue
+    updatePlayerCountLoop(player, game)
 
     message = Packet("startingGame")
     sendMessage(message, clientSocket)
@@ -334,25 +342,12 @@ def createPrivateGame(player: Player, gameName: str):
     addNewPrivateGame(gameID, privateGame)
     privateGame.addNewPlayer(player)
     privateGame.setName(gameName)
+    player.setGame(privateGame)
 
     message = Packet("createdNewPrivateGame", gameName)
     sendMessage(message, player)
 
-    clientSocket = player.getSocket()
-    while True:
-        ready = privateGame.allReady()
-        if ready:
-            break
-        else:
-            numPlayers = 0
-            #sends an update when the number of players in the game changes
-            if not numPlayers == privateGame.getNumPlayersJoined():
-                numPlayers = privateGame.getNumPlayersJoined()
-                message = Packet("setTotalPlayers", numPlayers)
-                sendMessage(message, clientSocket)
-                packet = receiveMessage(clientSocket)
-                if not packet.getAction() == "gotTotalPlayers" or not packet.getValue() == numPlayers:
-                    wrongPacketMessageReceived(player)
+    updatePlayerCountLoop(player, privateGame)
 
     startPrivateGame(player, gameID)
 
