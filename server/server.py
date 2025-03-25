@@ -369,7 +369,7 @@ def privateLobbyWaiting(player: Player):
             run = False
             if action == "joinRandomGame":
                 joinRandomGame(player)
-            elif action == "setPrivateGameName":
+            elif action == "createPrivateGame":
                 gameName = packet.getValue()
                 createPrivateGame(player, gameName)
             elif action == "joinPrivateGame":
@@ -414,7 +414,7 @@ def main():
         elif packet.getAction() == "joinRandomGame":
             start_new_thread(joinRandomGame, (player,))
 
-        elif packet.getAction() == "setPrivateGameName":
+        elif packet.getAction() == "createPrivateGame":
             gameName = packet.getValue()
             message = Packet("createNewPrivateGame", gameName)
             sendMessage(message, clientSocket)

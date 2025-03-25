@@ -145,7 +145,7 @@ def createPrivateGame():
                         gameName = gameName[:-1]
                     elif event.key == pygame.K_RETURN:
                         if active:
-                            message = Packet("setPrivateGameName", gameName)
+                            message = Packet("createPrivateGame", gameName)
                             run = False
                             sendMessage(message)
                     else:
@@ -153,7 +153,7 @@ def createPrivateGame():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 pos = pygame.mouse.get_pos()
                 if confirmButton.isClicked(pos):
-                    message = Packet("setPrivateGameName", gameName)
+                    message = Packet("createPrivateGame", gameName)
                     run = False
                     sendMessage(message)
                 if inputRectangle.collidepoint(pos):

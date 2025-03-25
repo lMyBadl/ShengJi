@@ -11,7 +11,7 @@ class Packet:
         setPlayerName (name)            -> gotPlayerName (name)
         
             Waiting in menu screen:
-        setPrivateGameName (gameName)   -> createdNewPrivateGame (gameName)
+        createPrivateGame (gameName)   -> createdNewPrivateGame (gameName)
         getPrivateGames ("")            -> returnPrivateGames (list of simplified private games)
         joinPrivateGame (gameID)        -> if joined: joinedPrivateGame (gameID) 
                                             else: failedToJoinPrivateGame (reason)
