@@ -163,27 +163,35 @@ def gameLoopForEachClient(player: Player, game: ShengJi):
     #deal the cards
     if game.getPlayerIndex(player) == 0:
         start_new_thread(dealCards, (game,))
-    while trumpSuit is None:
-        packet = receiveMessage(clientSocket)
-        if packet.getAction() == "set trump suit":
-            value, suit = packet.getValue()
-            if value == level:
-                trumpSuit = suit
-                game.setTrumpSuit(trumpSuit)
-                game.setTrickStarter(playerIndex)
-                message = Packet("changed trump suit", packet.getValue())
-                sendMessageToAllInGame(game, message)
-            else:
-                message = Packet("invalid card")
-                sendMessage(message, clientSocket)
     readyToPlay = game.allReady()
     reinforcedTrumpSuit = False
-    while not readyToPlay:
+    while not readyToPlay or not trumpSuit:
         packet = receiveMessage(clientSocket)
         if packet.getAction() == "ready to play":
             game.setPlayerReady(player, True)
             message = Packet("got ready to play")
             sendMessage(message, clientSocket)
+
+        elif packet.getAction() == "set trump suit":
+            if len(packet.getValue()) == 4 and packet.getValue()[0] == packet.getValue()[2] and packet.getValue()[1] == packet.getValue()[3]:
+                value = packet.getValue()[0]
+                suit = packet.getValue()[1]
+            elif len(packet.getValue()) == 2:
+                value, suit = packet.getValue()
+            else:
+                message = Packet("invalid card")
+                sendMessage(message, clientSocket)
+                continue
+
+            if value == level:
+                trumpSuit = suit
+                game.setTrumpSuit(trumpSuit)
+                game.setTrickStarter(playerIndex)
+                message = Packet("changed trump suit", suit)
+                sendMessageToAllInGame(game, message)
+            else:
+                message = Packet("invalid card")
+                sendMessage(message, clientSocket)
 
         elif packet.getAction() == "set trump suit" and playerIndex == game.getTrickStarter():
             simpleCards = packet.getValue() #array of value, suit pairs
@@ -357,8 +365,7 @@ def waitingInPrivateLobby(player: Player):
     :param player: Player object of the client
     """
     clientSocket = player.getSocket()
-    run = True
-    while run:
+    while True:
         packet = receiveMessage(clientSocket)
         action = packet.getAction()
         if action == "get private games":
@@ -366,7 +373,6 @@ def waitingInPrivateLobby(player: Player):
             message = Packet("return private games", listOfGames)
             sendMessage(message, clientSocket)
         else:
-            run = False
             if action == "join random game":
                 joinRandomGame(player)
             elif action == "create private game":
@@ -375,6 +381,7 @@ def waitingInPrivateLobby(player: Player):
             elif action == "join private game":
                 gameID = packet.getValue()
                 joinPrivateGame(player, gameID)
+            break
 
 
 def main():
