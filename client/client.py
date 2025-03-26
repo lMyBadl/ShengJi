@@ -81,7 +81,7 @@ def joinRandomGame() -> None:
     """
     Opens the join random game screen
     """
-    joinMessage = Packet("joinRandom", None)
+    joinMessage = Packet("join random game", None)
     try:
         None
     except Exception as e:
@@ -145,7 +145,7 @@ def createPrivateGame():
                         gameName = gameName[:-1]
                     elif event.key == pygame.K_RETURN:
                         if active:
-                            message = Packet("createPrivateGame", gameName)
+                            message = Packet("create private game", gameName)
                             run = False
                             sendMessage(message)
                     else:
@@ -153,7 +153,7 @@ def createPrivateGame():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 pos = pygame.mouse.get_pos()
                 if confirmButton.isClicked(pos):
-                    message = Packet("createPrivateGame", gameName)
+                    message = Packet("create private game", gameName)
                     run = False
                     sendMessage(message)
                 if inputRectangle.collidepoint(pos):
@@ -230,7 +230,7 @@ def privateGameLobby():
                     if button.isClicked(pos):
                         #gets updated private games list from server
                         if button.getText() == reloadPrivateGamesButtonText:
-                            getPrivateGames = Packet("getPrivateGames", 0)
+                            getPrivateGames = Packet("get private games", 0)
                             sendMessage(getPrivateGames)
                             # Should immediately get back private games
                             packet = receiveMessage()
@@ -247,7 +247,7 @@ def privateGameLobby():
                             displayedGames = privateGames[:numGamesDisplayed]
 
                         if button.getText() == "Join":
-                            joinMessage = Packet("joinPrivateGame", displayedGames[buttons.index(button)].getGameID())
+                            joinMessage = Packet("join private game", displayedGames[buttons.index(button)].getGameID())
                             sendMessage(joinMessage)
 
 
@@ -280,8 +280,11 @@ def inputNameScreen(screenAfter: str):
 
         packet = receiveMessage()
         print(f"received from server packets: {str(packet)}")
-        if packet.getAction() == "setDataSize":
+        if packet.getAction() == "set data size":
             dataSize = packet.getValue()
+
+        message = Packet("got data size", dataSize)
+        sendMessage(message)
 
         while run:
             clock.tick(60)
@@ -310,7 +313,7 @@ def inputNameScreen(screenAfter: str):
                     pos = pygame.mouse.get_pos()
                     if confirmButton.isClicked(pos):
                         run = False
-                        message = Packet("setPlayerName", inputText)
+                        message = Packet("set player name", inputText)
                         sendMessage(message)
                         loadScreen(screenAfter)
                     if inputRectangle.collidepoint(pos):
@@ -321,7 +324,7 @@ def inputNameScreen(screenAfter: str):
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_RETURN:
                         run = False
-                        message = Packet("setPlayerName", inputText)
+                        message = Packet("set player name", inputText)
                         sendMessage(message)
                         loadScreen(screenAfter)
                     if event.key == pygame.K_BACKSPACE:

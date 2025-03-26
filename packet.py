@@ -8,40 +8,41 @@ class Packet:
         what client sends               -> what server sends back
         
             First join:
-        setPlayerName (name)            -> gotPlayerName (name)
+        set player name (name)          -> got player name (name)
         
             Waiting in menu screen:
-        createPrivateGame (gameName)   -> createdNewPrivateGame (gameName)
-        getPrivateGames ("")            -> returnPrivateGames (list of simplified private games)
-        joinPrivateGame (gameID)        -> if joined: joinedPrivateGame (gameID) 
-                                            else: failedToJoinPrivateGame (reason)
-        joinRandomGame ("")             -> joinedRandomGame (gameID)
+        create private game (gameName)  -> created new private game (gameName)
+        get private games ("")          -> return private games (list of simplified private games)
+        join private game (gameID)        -> if joined: joined private game (gameID) 
+                                            else: failed to join private game (reason)
+        join random game ("")             -> joinedRandomGame (gameID)
         
             During game:
-        setTrumpSuit ([value, suit])    -> changedTrumpSuit (suit)
-                                            reinforcedTrumpSuit (suit)
-                                            changedToReinforcedTrumpSuit ([value, suit])
-                                            or if not valid invalidCard ("")
-        readyToPlay ("")                -> gotReadyToPlay ("")
+        set trump suit ([value, suit])    -> changed trump suit (suit)
+                                            reinforced trump suit (suit)
+                                            changed to reinforced trump suit ([value, suit])
+                                            or if not valid invalid card ("")
+        ready to play ("")                -> got ready to play ("")
         
         Server Actions:
         what server sends               -> what client sends back
         
             First join:
-        setDataSize (size)              -> gotDataSize (size)
+        set data size (size)              -> got data size (size)
         
             Joining a game:
-        assignID (playerID)             -> gotPlayerID (playerID)
+        assign ID (playerID)             -> got player ID (playerID)
         
             Waiting in game lobby:
-        setTotalPlayers (numPlayers)    -> gotTotalPlayers (numPlayers)
-        startingGame ("")               -> readyToPlay (playerName)
+        set total players (numPlayers)    -> got total players (numPlayers)
+        starting game ("")               -> ready to play (playerName)
+        
         #can be implemented
-        playerReady (playerName)        -> gotPlayerReady (playerName)
-        playerUnready (playerName)      -> gotPlayerUnready (playerName)
+        player ready (playerName)        -> got player ready (playerName)
+        player unready (playerName)      -> got player unready (playerName)
 
             Drawing cards:
-        addCardToHand (card)            -> addedCardToHand (card)
+        add card to hand (card)            -> added card to hand (card)
         """
         self.action = action
         self.value = value
