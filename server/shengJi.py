@@ -6,13 +6,13 @@ class ShengJi:
     """
     def __init__(self, gameId: int):
         self.name = None
-        self.trumpSuit = None
-
         self.gameID = gameId
+
         self.ready = [False, False, False, False]
         self.players = [Player(), Player(), Player(), Player()]
         self.playersWent = [False, False, False, False]
 
+        self.trumpSuit = None
         self.level = 2
         self.deck = Deck(True, 2)
         self.deck.makeDeck(self.level)
@@ -23,6 +23,24 @@ class ShengJi:
         self.trickStarter = 0
         self.attackingTeam = 0
         self.colorOfTrumpSuitIfJoker = None
+
+    def reset(self) -> str:
+        self.ready = [False, False, False, False]
+        self.players = [Player(), Player(), Player(), Player()]
+        self.playersWent = [False, False, False, False]
+
+        self.trumpSuit = None
+        self.level = 2
+        self.deck = Deck(True, 2)
+        self.deck.makeDeck(self.level)
+        self.deck.setTrumpValue(self.level)
+        self.playerPoints = [0, 0, 0, 0]
+
+        self.moves = [[], [], [], []]
+        self.trickStarter = 0
+        self.attackingTeam = 0
+        self.colorOfTrumpSuitIfJoker = None
+        return "Reset Game"
 
     def playCard(self, player: int, move: list) -> None:
         """

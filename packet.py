@@ -18,9 +18,9 @@ class Packet:
         join random game ("")             -> joinedRandomGame (gameID)
         
             During game:
-        set trump suit ([value, suit])    -> changed trump suit (suit)
+        set trump suit ([value, suit])    -> set trump suit (suit)
                                             reinforced trump suit (suit)
-                                            changed to reinforced trump suit ([value, suit])
+                                            changed trump suit (suit)
                                             or if not valid invalid card ("")
         ready to play ("")                -> got ready to play ("")
         

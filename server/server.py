@@ -49,7 +49,7 @@ def receiveMessage(clientSocket: socket) -> Packet | None:
     print(f"Received {message} from {clientSocket}")
     return message
 
-def sendMessageToAllInGame(game: ShengJi, message: Packet):
+def sendMessageToAllInGame(message: Packet, game: ShengJi):
     players = game.getPlayers()
     for player in players:
         sendMessage(message, player.getSocket())
@@ -165,7 +165,7 @@ def gameLoopForEachClient(player: Player, game: ShengJi):
         start_new_thread(dealCards, (game,))
     readyToPlay = game.allReady()
     reinforcedTrumpSuit = False
-    while not readyToPlay or not trumpSuit:
+    while not readyToPlay and not trumpSuit:
         packet = receiveMessage(clientSocket)
         if packet.getAction() == "ready to play":
             game.setPlayerReady(player, True)
@@ -173,42 +173,25 @@ def gameLoopForEachClient(player: Player, game: ShengJi):
             sendMessage(message, clientSocket)
 
         elif packet.getAction() == "set trump suit":
-            if len(packet.getValue()) == 4 and packet.getValue()[0] == packet.getValue()[2] and packet.getValue()[1] == packet.getValue()[3]:
-                value = packet.getValue()[0]
-                suit = packet.getValue()[1]
-            elif len(packet.getValue()) == 2:
-                value, suit = packet.getValue()
-            else:
-                message = Packet("invalid card")
-                sendMessage(message, clientSocket)
-                continue
+            simpleCards = packet.getValue()  # array of value, suit pairs
 
-            if value == level:
-                trumpSuit = suit
-                game.setTrumpSuit(trumpSuit)
-                game.setTrickStarter(playerIndex)
-                message = Packet("changed trump suit", suit)
-                sendMessageToAllInGame(game, message)
-            else:
-                message = Packet("invalid card")
-                sendMessage(message, clientSocket)
-
-        elif packet.getAction() == "set trump suit" and playerIndex == game.getTrickStarter():
-            simpleCards = packet.getValue() #array of value, suit pairs
-
-            if playerIndex == game.getTrickStarter() and not reinforcedTrumpSuit:
+            if len(simpleCards) == 2:
                 value, suit = simpleCards
-                if not suit == game.getTrumpSuit() or not value == game.getLevel():
-                    message = Packet("invalid card")
-                    sendMessage(message, clientSocket)
+                if trumpSuit:
+                    if playerIndex == game.getTrickStarter() and suit == game.getTrumpSuit() and value == game.getLevel():
+                        reinforcedTrumpSuit = True
+                        message = Packet("reinforced trump suit", suit)
+                        sendMessageToAllInGame(message, game)
                 else:
-                    reinforcedTrumpSuit = True
-                    message = Packet("reinforced trump suit", suit)
-                    sendMessageToAllInGame(game, message)
+                    if suit == game.getTrumpSuit() and value == game.getLevel():
+                        message = Packet("set trump suit", suit)
+                        sendMessageToAllInGame(message, game)
+                    else:
+                        message = Packet("invalid card")
+                        sendMessage(message, clientSocket)
 
             elif simpleCards[0] == simpleCards[2] and simpleCards[1] == simpleCards[3]:
                 if not reinforcedTrumpSuit:
-                    reinforcedTrumpSuit = True
                     trumpSuit = None
                     if simpleCards[1] == "joker":
                         game.setColorOfTrumpSuitIfJoker(simpleCards[0])
@@ -217,14 +200,16 @@ def gameLoopForEachClient(player: Player, game: ShengJi):
                         trumpSuit = simpleCards[1]
 
                     if trumpSuit:
-                        game.setTrumpSuit(simpleCards[1])
+                        reinforcedTrumpSuit = True
+                        game.setTrumpSuit(trumpSuit)
                         game.setTrickStarter(playerIndex)
-                        message = Packet("changed to reinforced trump suit", [simpleCards[0], simpleCards[1]])
-                        sendMessageToAllInGame(game, message)
+                        message = Packet("reinforced trump suit", [simpleCards[0], simpleCards[1]])
+                        sendMessageToAllInGame(message, game)
                     else:
                         message = Packet("invalid card")
                         sendMessage(message, clientSocket)
 
+                #reinforced trump suit
                 else:
                     jokerColor = game.getColorOfTrumpSuitIfJoker()
                     newCard = Card(simpleCards[0], simpleCards[1], -1, "")
@@ -236,15 +221,25 @@ def gameLoopForEachClient(player: Player, game: ShengJi):
                     if newCard > oldCard:
                         game.setTrumpSuit(simpleCards[1])
                         game.setTrickStarter(playerIndex)
-                        message = Packet("changed to reinforced trump suit", [simpleCards[0], simpleCards[1]])
+                        message = Packet("changed trump suit", [simpleCards[0], simpleCards[1]])
                         if simpleCards[1] == "joker":
                             game.setColorOfTrumpSuitIfJoker(simpleCards[0])
 
-                        sendMessageToAllInGame(game, message)
+                        sendMessageToAllInGame(message, game)
+                    else:
+                        message = Packet("invalid card")
+                        sendMessage(message, clientSocket)
+            else:
+                message = Packet("invalid card")
+                sendMessage(message, clientSocket)
+        trumpSuit = game.getTrumpSuit()
 
-
-            
-
+    #actual gameplay
+    while player.getHand():
+        if playerIndex == game.getTrickStarter():
+            packet = receiveMessage(clientSocket)
+            if packet.getAction() == "play card":
+                card = packet.getValue()
 
 
 def startPrivateGame(player: Player, gameID: int):
