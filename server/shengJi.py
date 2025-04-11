@@ -21,6 +21,7 @@ class ShengJi:
 
         self.moves = [[], [], [], []]
         self.trickStarter = 0
+        self.trickSize = 1
         self.attackingTeam = 0
         self.colorOfTrumpSuitIfJoker = None
 
@@ -38,15 +39,16 @@ class ShengJi:
 
         self.moves = [[], [], [], []]
         self.trickStarter = 0
+        self.trickSize = 1
         self.attackingTeam = 0
         self.colorOfTrumpSuitIfJoker = None
         return "Reset Game"
 
-    def playCard(self, player: int, move: list) -> None:
+    def playCard(self, player: int, move) -> None:
         """
 
         :param player: [0, 1, 2, 3]
-        :param move: The Player's move from an array of Card objects
+        :param move: The Player's move as either a single item or an array of items
         """
         self.moves[player] = move
         self.playersWent[player] = True
@@ -117,10 +119,6 @@ class ShengJi:
         :return: The player's move
         """
         return self.moves[player]
-
-    def playPlayerMove(self, player: int, move: list):
-        self.moves[player] = move
-        self.playersWent[player] = True
 
     def allPlayed(self) -> bool:
         return self.playersWent[0] and self.playersWent[1] and self.playersWent[2] and self.playersWent[3]

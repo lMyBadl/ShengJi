@@ -23,6 +23,7 @@ class Packet:
                                             changed trump suit (suit)
                                             or if not valid invalid card ("")
         ready to play ("")                -> got ready to play ("")
+        play cards (simple card(s))      -> got cards (simple card(s))
         
         Server Actions:
         what server sends               -> what client sends back

@@ -13,6 +13,9 @@ class SimpleCard:
     def __str__(self):
         return [self.value, self.suit]
 
+    def __eq__(self, other):
+        return self.getValue() == other.getValue() and self.getSuit() == other.getSuit()
+
     def getValue(self):
         """
         Gets the value of the card

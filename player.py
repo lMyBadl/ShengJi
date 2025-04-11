@@ -67,3 +67,5 @@ class Player:
 
     def getGame(self):
         return self.game
+
+    def removeCard(self):

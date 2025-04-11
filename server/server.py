@@ -238,8 +238,13 @@ def gameLoopForEachClient(player: Player, game: ShengJi):
     while player.getHand():
         if playerIndex == game.getTrickStarter():
             packet = receiveMessage(clientSocket)
-            if packet.getAction() == "play card":
-                card = packet.getValue()
+            if packet.getAction() == "play cards":
+                cards = packet.getValue()
+                if len(cards) == 2 and cards[0] == cards[1]:
+                    c0, c1 = cards
+                    card1 = Card(c0.getValue(), c0.getSuit())
+                    game.playCard()
+
 
 
 def startPrivateGame(player: Player, gameID: int):

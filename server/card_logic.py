@@ -68,13 +68,14 @@ class Card:
             #they could have trump suit, trump value or joker
             return other.value != other.trumpValue or other.suit != other.trumpSuit or other.suit != "joker"
 
-        #if not main suit, trump suit, trump value, or joker then it will always be smallest
+        #if not main suit, trump suit, trump value, or joker then it will always be equal to or smaller
         return False
 
     def __eq__ (self, other):
-        if self.suit != self.mainSuit and self.suit != self.trumpSuit:
+        """if self.suit != self.mainSuit and self.suit != self.trumpSuit:
             return other.suit != other.mainSuit and other.suit != other.trumpSuit
-        return self.value == other.value and self.suit == other.suit != self.mainSuit
+        return self.value == other.value and self.suit == other.suit != self.mainSuit"""
+        return self.getValue() == other.getValue() and self.getSuit() == other.getSuit()
 
     def __ne__ (self, other):
         return not self.__eq__(other)
