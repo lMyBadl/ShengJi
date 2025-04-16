@@ -240,6 +240,9 @@ def gameLoopForEachClient(player: Player, game: ShengJi):
             packet = receiveMessage(clientSocket)
             if packet.getAction() == "play cards":
                 cards = packet.getValue()
+                if len(cards) == 1:
+                    cards = cards[0]
+                    card = Card(cards.getValue(), cards.getSuit(), )
                 if len(cards) == 2 and cards[0] == cards[1]:
                     c0, c1 = cards
                     card1 = Card(c0.getValue(), c0.getSuit())
