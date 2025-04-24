@@ -73,7 +73,7 @@ def loadScreen(screenName: str) -> None:
     if screenName == "Join Random Game":
         joinRandomGame()
     elif screenName == "Load Private Game Lobby":
-        privateGameLobby()
+        privateGameDirectory()
     elif screenName == "Create Private Game":
         createPrivateGame()
 
@@ -161,7 +161,25 @@ def createPrivateGame():
                 else:
                     active = False
 
+    privateGameLobby()
+
 def privateGameLobby():
+    packet = receiveMessage()
+    if not packet.getAction() == "created new private game":
+        serverClosed()
+        return
+    gameName = packet.getValue()
+
+    run = True
+    while run:
+        packet = receiveMessage()
+        if packet.getAction() == "set total players":
+            numPlayers = packet.getValue()
+            message = Packet("got total players", numPlayers)
+            sendMessage(message)
+
+
+def privateGameDirectory():
     """
     Displays the screen for the list of private games available
     """
@@ -493,3 +511,4 @@ def animateCardPlay(card):
     global animatingCard, animationProgress
     animatingCard = card
     animationProgress = 0  # Reset progress
+#496 on 4/24/25

@@ -1,4 +1,5 @@
 import socket
+from server.shengJi import ShengJi
 
 class Player:
     """
@@ -62,10 +63,10 @@ class Player:
     def getHandSize(self) -> int:
         return len(self.hand)
 
-    def setGame(self, game) -> None:
+    def setGame(self, game: ShengJi) -> None:
         self.game = game
 
-    def getGame(self):
+    def getGame(self) -> ShengJi:
         return self.game
 
-    def removeCard(self):
+    #def removeCard(self):

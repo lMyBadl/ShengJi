@@ -127,6 +127,26 @@ def wrongPacketMessageReceived(player: Player):
     player.getSocket().close()
     del player
 
+def readyUpConfirmation(player: Player):
+    """
+    A method to synchronize players in the lobby screen so one player doesn't load in ahead of another
+    """
+    clientSocket = player.getSocket()
+    message = Packet("starting game")
+    sendMessage(clientSocket, message)
+    packet = receiveMessage(clientSocket)
+    game = player.getGame()
+    numReady = game.getNumPlayersReady()
+
+    if packet.getAction() == "ready to play":
+        player.getGame().setPlayerReady(player, True)
+    while not game.allReady():
+        ready = game.getNumPlayersReady()
+        if not ready == numReady:
+            numReady = ready
+            message = Packet("number of players ready", numReady)
+            sendMessage(clientSocket, message)
+    
 def dealCards(game: ShengJi):
     """
     Deals the cards slowly to the players
@@ -301,20 +321,16 @@ def joinRandomGame(player: Player):
         randomGames.append(mostRecentlyCreatedGame)
         mostRecentlyCreatedGame.addNewPlayer(player)
         player.setGame(mostRecentlyCreatedGame)
-        message = Packet("joinedRandomGame", gameID)
+        message = Packet("joined random game", gameID)
     else: #game isn't full
         mostRecentlyCreatedGame.addNewPlayer(player)
         player.setGame(mostRecentlyCreatedGame)
-        message = Packet("joinedRandomGame", mostRecentlyCreatedGame.getID())
+        message = Packet("joined random game", mostRecentlyCreatedGame.getID())
     sendMessage(message, clientSocket)
 
     updatePlayerCountLoop(player, mostRecentlyCreatedGame)
 
-    message = Packet("starting game")
-    sendMessage(message, clientSocket)
-    packet = receiveMessage(clientSocket)
-    if not packet.getAction() == "ready to play":
-        wrongPacketMessageReceived(player)
+    readyUpConfirmation(player)
 
     startRandomGame(player, gameIndex)
 
@@ -332,11 +348,7 @@ def joinPrivateGame(player: Player, gameID: int):
     game = privateGames[gameID]
     updatePlayerCountLoop(player, game)
 
-    message = Packet("starting game")
-    sendMessage(message, clientSocket)
-    packet = receiveMessage(clientSocket)
-    if not packet.getAction() == "ready to play":
-        wrongPacketMessageReceived(player)
+    readyUpConfirmation(player)
 
     startPrivateGame(player, gameID)
     """while True:
@@ -354,12 +366,15 @@ def createPrivateGame(player: Player, gameName: str):
     privateGame.addNewPlayer(player)
     privateGame.setName(gameName)
     player.setGame(privateGame)
+    clientSocket = player.getSocket()
 
     message = Packet("created new private game", gameName)
     sendMessage(message, player)
 
     updatePlayerCountLoop(player, privateGame)
-
+    
+    readyUpConfirmation(player)
+        
     startPrivateGame(player, gameID)
 
 def waitingInPrivateLobby(player: Player):
@@ -435,3 +450,4 @@ def main():
 
 #running server
 main()
+#400 lines on 4/24/25

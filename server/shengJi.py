@@ -129,12 +129,20 @@ class ShengJi:
     def setLevel(self, level: int):
         self.level = level
 
-    def setPlayerReady(self, player, ready: bool):
+    def setPlayerReady(self, player: Player, ready: bool):
         playerIndex = self.getPlayerIndex(player)
         self.ready[playerIndex] = ready
 
     def allReady(self) -> bool:
         return self.ready[0] and self.ready[1] and self.ready[2] and self.ready[3]
+
+    def getNumPlayersReady(self):
+        count = 0
+        for x in self.ready:
+            if x:
+                count += 1
+
+        return count
 
     def getPlayerFromId(self, playerId: int):
         for player in self.players:

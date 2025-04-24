@@ -35,6 +35,7 @@ class Packet:
         assign ID (playerID)             -> got player ID (playerID)
         
             Waiting in game lobby:
+        number of players ready (numPlayers) -> got players ready (numPlayers)
         set total players (numPlayers)    -> got total players (numPlayers)
         starting game ("")               -> ready to play (playerName)
         
